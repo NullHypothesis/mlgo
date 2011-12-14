@@ -1,9 +1,9 @@
-package kmeans
+package mlgo
 
 import (
 	"rand"
 	"math"
-	"fmt"
+	//"fmt"
 )
 
 type Vector []float64
@@ -24,18 +24,18 @@ type Clusters struct {
 	Cost float64
 }
 
-// Run runs the k-means algorightm for iter random rounds
-func Run(X Matrix, K int, iter int) (clusters *Clusters) {
+// Run runs the k-means algorightm for specified number of restarts
+func Run(X Matrix, K int, restarts int) (clusters *Clusters) {
 	// run k-means concurrently
 	ch := make(chan *Clusters)
-	for i := 0; i < iter; i++ {
+	for i := 0; i < restarts; i++ {
 		c := Clusters{X:X, K:K}
-		go c.Solve(ch)
+		go c.Solve(ch, 0)
 	}
 
 	// determine best clustering
 	minCost := maxValue
-	for i := 0; i < iter; i++ {
+	for i := 0; i < restarts; i++ {
 		if c := <-ch; c.Cost < minCost {
 			clusters = c
 			minCost = c.Cost
@@ -46,15 +46,17 @@ func Run(X Matrix, K int, iter int) (clusters *Clusters) {
 
 // Solve runs the k-means algorithm once with random initialization
 // Returns the cost
-func (c *Clusters) Solve(chClusters chan<- *Clusters) {
+func (c *Clusters) Solve(chClusters chan<- *Clusters, iter int) {
 	var cost float64
 	c.initialize()
-	for !c.expectation() {
+	i := 0
+	for !c.expectation() && (iter == 0 || i < iter) {
 		cost = c.maximization()
+		i++
 	}
 	c.Cost = cost
-	fmt.Println("c.Classes", c.Classes)
-	fmt.Println("c.Means", c.Means)
+	//fmt.Println("c.Classes", c.Classes)
+	//fmt.Println("c.Means", c.Means)
 	chClusters <- c
 }
 
