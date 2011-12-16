@@ -1,7 +1,8 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=mlgo
+TARG=mlgo/mlgo
 GOFILES=\
-				kmeans.go\
+				types.go\
+				stats.go\
 
 include $(GOROOT)/src/Make.pkg

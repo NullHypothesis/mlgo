@@ -1,4 +1,4 @@
-package mixmodel
+package mlgo
 
 import (
 	"math"

@@ -1,69 +1,48 @@
-package mlgo
+package cluster
 
 import (
 	"rand"
-	"math"
-	//"fmt"
 )
 
-type Vector []float64
-type Matrix [][]float64
-
-const maxValue = math.MaxFloat64
-
-type Clusters struct {
+type KMeans struct {
 	// Matrix of data points
 	X Matrix
 	// number of clusters
 	K int
 	// Matrix of centroids	
 	Means, Errors Matrix
-	// cluster means assignment index
-	Classes []int
+	// cluster center assignment index
+	Centers []int
 	// cost
 	Cost float64
+	// Maximum number of iterations
+	MaxIter int
 }
 
-// Run runs the k-means algorightm for specified number of restarts
-func Run(X Matrix, K int, restarts int) (clusters *Clusters) {
-	// run k-means concurrently
-	ch := make(chan *Clusters)
-	for i := 0; i < restarts; i++ {
-		c := Clusters{X:X, K:K}
-		go c.Solve(ch, 0)
+// Cluster runs the k-means algorithm once with random initialization
+// Returns the classification information
+func (c *KMeans) Cluster(k int) (classes *Classes) {
+	if c.X == nil { return }
+	c.K = k
+	c.initialize()
+	i := 0
+	for !c.expectation() && (c.MaxIter == 0 || i < c.MaxIter) {
+		c.maximization()
+		i++
 	}
 
-	// determine best clustering
-	minCost := maxValue
-	for i := 0; i < restarts; i++ {
-		if c := <-ch; c.Cost < minCost {
-			clusters = c
-			minCost = c.Cost
-		}
-	}
+	// copy classifcation information
+	classes = &Classes{
+		make([]int, len(c.X)), c.Cost }
+	copy(classes.Index, c.Centers)
+
 	return
 }
 
-// Solve runs the k-means algorithm once with random initialization
-// Returns the cost
-func (c *Clusters) Solve(chClusters chan<- *Clusters, iter int) {
-	var cost float64
-	c.initialize()
-	i := 0
-	for !c.expectation() && (iter == 0 || i < iter) {
-		cost = c.maximization()
-		i++
-	}
-	c.Cost = cost
-	//fmt.Println("c.Classes", c.Classes)
-	//fmt.Println("c.Means", c.Means)
-	chClusters <- c
-}
-
 // initialize the cluster meanss randomly
-func (c *Clusters) initialize() {
+func (c *KMeans) initialize() {
 	c.Means, c.Errors = make(Matrix, c.K), make(Matrix, c.K)
-	c.Classes = make([]int, len(c.X))
+	c.Centers = make([]int, len(c.X))
 	for k, _ := range c.Means {
 		x := c.X[ rand.Intn(len(c.X)) ]
 		c.Means[k], c.Errors[k] = make(Vector, len(x)), make(Vector, len(x))
@@ -73,7 +52,7 @@ func (c *Clusters) initialize() {
 
 // expectation step: assign data points to cluster meanss
 // Returns whether the algorithm has converged
-func (c *Clusters) expectation() (converged bool) {
+func (c *KMeans) expectation() (converged bool) {
 	// find the means that is closest to the current data point
 	assign := func(i int, chIndex chan int) {
 		index, min :=  0, maxValue
@@ -101,8 +80,8 @@ func (c *Clusters) expectation() (converged bool) {
 	// collect results
 	converged = true
 	for i, _ := range c.X { 
-		if index := <- ch; c.Classes[i] != index {
-			c.Classes[i] = index
+		if index := <- ch; c.Centers[i] != index {
+			c.Centers[i] = index
 			converged = false
 		}
 	}
@@ -112,7 +91,7 @@ func (c *Clusters) expectation() (converged bool) {
 
 // maximization step: move cluster meanss to centroids of data points
 // Returns the cost
-func (c *Clusters) maximization() float64 {
+func (c *KMeans) maximization() {
 	// move cluster meanss
 	move := func(ii int, chCost chan float64) {
 		means := c.Means[ii]
@@ -124,7 +103,7 @@ func (c *Clusters) maximization() float64 {
 		}
 		// compute centroid
 		n := 0.0
-		for i, class := range c.Classes {
+		for i, class := range c.Centers {
 			if class == ii {
 				for j, _ := range means {
 					x := c.X[i][j]
@@ -158,6 +137,6 @@ func (c *Clusters) maximization() float64 {
 	}
 	J /= float64( len(c.X) )
 
-	return J
+	c.Cost = J
 }
 

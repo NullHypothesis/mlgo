@@ -1,8 +1,9 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=mlgo/mixmodel
+TARG=mlgo/cluster
 GOFILES=\
-				stats.go\
+				cluster.go\
+				kmeans.go\
 				mixmodel.go\
 
 include $(GOROOT)/src/Make.pkg
