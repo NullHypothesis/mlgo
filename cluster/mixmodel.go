@@ -159,6 +159,10 @@ func (c *MixModel) expectation() (converged bool) {
 		model -= math.Log(px)
 	}
 
+	// Check that model negative log likelihood is decreasing
+	// (negative log likelihood is guaranteed to be non-increasing).
+	// If the current value does not differ from the previous,
+	// the algorithm has converged (possibly to a local minimum).
 	if c.NLogLikelihood - model > logProbEpsilon {
 		converged = false
 	} else {
