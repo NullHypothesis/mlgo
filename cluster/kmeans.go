@@ -2,8 +2,6 @@ package cluster
 
 import (
 	"rand"
-	"sort"
-	"math"
 )
 
 type KMeans struct {
@@ -19,6 +17,10 @@ type KMeans struct {
 	Cost float64
 	// Maximum number of iterations
 	MaxIter int
+}
+
+func NewKMeans(X Matrix) *KMeans {
+	return &KMeans{X:X}
 }
 
 // Cluster runs the k-means algorithm once with random initialization
@@ -91,10 +93,9 @@ func (c *KMeans) expectation() (converged bool) {
 	return
 }
 
-// maximization step: move cluster meanss to centroids of data points
-// Returns the cost
+// maximization step: move cluster centers to centroids of data points
 func (c *KMeans) maximization() {
-	// move cluster meanss
+	// move the center of cluster_ii to the mean
 	move := func(ii int, chCost chan float64) {
 		means := c.Centers[ii]
 		errors := c.Errors[ii]
@@ -123,6 +124,9 @@ func (c *KMeans) maximization() {
 			errors[j] -= mean*mean * n
 			cost += errors[j]
 		}
+		// mathematically, the cost is equivalent to 1/m * sum_i( ||x_i - center_i||^2 )
+		// where m is the number of data points, and center_i is the
+		// center to which x_i is assigned
 		chCost <- cost;
 	}
 
@@ -137,109 +141,7 @@ func (c *KMeans) maximization() {
 	for ii := 0; ii < len(c.Centers); ii++ {
 		J += <-ch;
 	}
-	J /= float64( len(c.X) )
+	c.Cost = J / float64( len(c.X) )
 
-	c.Cost = J
-}
-
-
-type KMedians struct {
-	KMeans
-}
-
-// Cluster runs the k-medians algorithm once with random initialization
-// Returns the classification information
-// N.B. Must explicitly override KMeans.Cluster s.t. KMedians.maximization is called
-// instead of KMeans.maximization.
-func (c *KMedians) Cluster(k int) (classes *Classes) {
-	if c.X == nil { return }
-	c.K = k
-	c.initialize()
-	i := 0
-	for !c.expectation() && (c.MaxIter == 0 || i < c.MaxIter) {
-		c.maximization()
-		i++
-	}
-
-	// copy classifcation information
-	classes = &Classes{
-		make([]int, len(c.X)), c.Cost }
-	copy(classes.Index, c.Index)
-
-	return
-}
-
-// Override KMeans.maximization
-// Calculate the median instead of mean;
-// total absolute deviation instead of total sum of squares
-func (c *KMedians) maximization() {
-	// move cluster centroid_ii
-	move := func(ii int, chCost chan float64) {
-		centers := c.Centers[ii]
-		errors := c.Errors[ii]
-		// hold coordinate of each dimension for each member
-		members := make(Matrix, len(centers))
-		// initialize
-		for j, _ := range centers {
-			members[j] = make(Vector, len(c.X))
-		}
-
-		// gather all member data points
-		n := 0
-		for i, class := range c.Index {
-			if class == ii {
-				for j, _ := range centers {
-					members[j][n] = c.X[i][j]
-				}
-				n++
-			}
-		}
-
-		// compute centers and errors
-		cost := 0.0
-		for j, _ := range centers {
-			// find median
-			centers[j], errors[j] = median(members[j][:n])
-			cost += errors[j]
-		}
-		chCost <- cost;
-	}
-
-	// process cluster centers concurrently
-	ch := make(chan float64)
-	for ii, _ := range c.Centers {
-		go move(ii, ch)
-	}
-
-	// collect results
-	J := 0.0
-	for ii := 0; ii < len(c.Centers); ii++ {
-		J += <-ch;
-	}
-	J /= float64( len(c.X) )
-
-	c.Cost = J
-}
-
-// find median and tad
-// side-effect: x becomes sorted
-func median(x Vector) (med, tad float64) {
-	sort.Float64s(x)
-	n := len(x)
-
-	// calculate median
-	if n % 2 == 0 {
-		i := n/2
-		med = (x[i] + x[i-1]) / 2
-	} else {
-		med = x[n/2]
-	}
-
-	// calculate total absolute deviation
-	for _, z := range x {
-		tad += math.Fabs( z - med )
-	}
-
-	return
 }
 
