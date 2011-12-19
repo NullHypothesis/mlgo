@@ -7,10 +7,14 @@ import (
 type KMeans struct {
 	// Matrix of data points
 	X Matrix
+	// Distance metric
+	Metric MetricOp
 	// number of clusters
 	K int
 	// Matrix of centroids	
-	Centers, Errors Matrix
+	Centers Matrix
+	// Total distance of members to each centroid
+	Errors Vector
 	// cluster center assignment index
 	Index []int
 	// cost
@@ -19,8 +23,11 @@ type KMeans struct {
 	MaxIter int
 }
 
-func NewKMeans(X Matrix) *KMeans {
-	return &KMeans{X:X}
+func NewKMeans(X Matrix, metric MetricOp) *KMeans {
+	return &KMeans{
+		X: X,
+		Metric: metric,
+	}
 }
 
 // Cluster runs the k-means algorithm once with random initialization
@@ -45,11 +52,11 @@ func (c *KMeans) Cluster(k int) (classes *Classes) {
 
 // initialize the cluster centroids by randomly selecting data points
 func (c *KMeans) initialize() {
-	c.Centers, c.Errors = make(Matrix, c.K), make(Matrix, c.K)
+	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)
 	c.Index = make([]int, len(c.X))
 	for k, _ := range c.Centers {
 		x := c.X[ rand.Intn(len(c.X)) ]
-		c.Centers[k], c.Errors[k] = make(Vector, len(x)), make(Vector, len(x))
+		c.Centers[k] = make(Vector, len(x))
 		copy(c.Centers[k], x)
 	}
 }
@@ -60,16 +67,11 @@ func (c *KMeans) expectation() (converged bool) {
 	// find the centroids that is closest to the current data point
 	assign := func(i int, chIndex chan int) {
 		index, min :=  0, maxValue
+		// find the center with the minimum distance
 		for ii := 0; ii < len(c.Centers); ii++ {
-			// calculate distance
-			distance := 0.0
-			for j := 0; j < len(c.X[i]); j++ {
-				diff := c.X[i][j] - c.Centers[ii][j]
-				distance += diff * diff
-			}
+			distance := c.Metric(c.X[i], c.Centers[ii])
 			if distance < min {
-				index = ii
-				min = distance
+				index, min = ii, distance
 			}
 		}
 		chIndex <- index
@@ -97,36 +99,43 @@ func (c *KMeans) expectation() (converged bool) {
 func (c *KMeans) maximization() {
 	// move the center of cluster_ii to the mean
 	move := func(ii int, chCost chan float64) {
-		means := c.Centers[ii]
+		center := c.Centers[ii]
 		errors := c.Errors[ii]
 		// zero the coordinates
-		for j, _ := range means {
-			means[j] = 0
+		for j, _ := range center {
+			center[j] = 0
 			errors[j] = 0
 		}
 		// compute centroid
-		n := 0.0
+		n := 0
+		memberIdx := make([]int, len(c.Index))
 		for i, class := range c.Index {
 			if class == ii {
-				for j, _ := range means {
+				for j, _ := range center {
 					x := c.X[i][j]
-					means[j] += x
+					center[j] += x
 					errors[j] += x * x
 				}
+				memberIdx[n] = i
 				n++
 			}
 		}
-		cost := 0.0
-		for j, _ := range means {
-			mean := means[j] / n
-			means[j] = mean
+		memberIdx = memberIdx[:n]
+
+		fn := float64(n)
+		for j, _ := range center {
+			mean := center[j] / fn
+			center[j] = mean
 			// complete calculating the variance*N using the sum of squares formula
-			errors[j] -= mean*mean * n
-			cost += errors[j]
+			errors[j] -= mean*mean * fn
 		}
-		// mathematically, the cost is equivalent to 1/m * sum_i( ||x_i - center_i||^2 )
-		// where m is the number of data points, and center_i is the
-		// center to which x_i is assigned
+
+		// compute cost
+		cost := 0.0
+		for _, i := range memberIdx {
+			cost += c.Metric(center, c.X[i])
+		}
+
 		chCost <- cost;
 	}
 
