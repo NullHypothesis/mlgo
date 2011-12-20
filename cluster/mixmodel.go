@@ -55,33 +55,9 @@ func (c *MixModel) Cluster(k int) (classes *Classes) {
 	return
 }
 
-func summary(X Matrix) (means, variances Vector) {
-	m := len(X)
-	if m < 2 { return }
-
-	n := len(X[0])
-	stats := make([]mlgo.Summary, n)
-
-	means, variances = make(Vector, n), make(Vector, n)
-
-	for i := 0; i < m; i++ {
-		// accumulate statistics for each feature
-		for j, x := range X[i] {
-			stats[j].Add(x)
-		}
-	}
-
-	for j, _ := range stats {
-		means[j] = stats[j].Mean
-		variances[j] = stats[j].VarP()
-	}
-
-	return
-}
-
 // initialize Gaussians randomly
 func (c *MixModel) initialize() {
-	means, variances := summary(c.X)
+	means, variances := mlgo.Matrix(c.X).Summarize()
 	m, n := len(c.X), len(means)
 
 	c.Means, c.Variances, c.Mixings = make(Matrix, c.K), make(Matrix, c.K), make(Vector, c.K)

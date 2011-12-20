@@ -5,7 +5,7 @@ import (
 )
 
 type Vector mlgo.Vector
-type Matrix mlgo.Matrix
+type Matrix  mlgo.Matrix
 
 const maxValue = mlgo.MaxValue
 

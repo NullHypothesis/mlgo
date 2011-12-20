@@ -9,7 +9,7 @@ type Summary struct {
 }
 
 // Add accumulates running statistics for calculating variance and
-// standard deviation us.Ng the Welford method (1962)
+// standard deviation using the Welford method (1962)
 func (s *Summary) Add(x float64) {
 	if s.N > 0 {
 		if x < s.Min { s.Min = x }
@@ -63,11 +63,11 @@ func (s *Summary) SdP() (v float64) {
 	return
 }
 
+// Range returns the range of the data
 func (s *Summary) Range() (r float64) {
 	if s.N > 1 {
 		r = s.Max - s.Min
 	}
 	return
 }
-
 
