@@ -100,13 +100,13 @@ func (c *KMeans) maximization() {
 	// move the center of cluster_ii to the mean
 	move := func(ii int, chCost chan float64) {
 		center := c.Centers[ii]
-		errors := c.Errors[ii]
+
 		// zero the coordinates
 		for j, _ := range center {
 			center[j] = 0
-			errors[j] = 0
 		}
-		// compute centroid
+
+		// compute centroid and gather members
 		n := 0
 		memberIdx := make([]int, len(c.Index))
 		for i, class := range c.Index {
@@ -114,7 +114,6 @@ func (c *KMeans) maximization() {
 				for j, _ := range center {
 					x := c.X[i][j]
 					center[j] += x
-					errors[j] += x * x
 				}
 				memberIdx[n] = i
 				n++
@@ -124,10 +123,7 @@ func (c *KMeans) maximization() {
 
 		fn := float64(n)
 		for j, _ := range center {
-			mean := center[j] / fn
-			center[j] = mean
-			// complete calculating the variance*N using the sum of squares formula
-			errors[j] -= mean*mean * fn
+			center[j] /= fn
 		}
 
 		// compute cost
@@ -136,6 +132,7 @@ func (c *KMeans) maximization() {
 			cost += c.Metric(center, c.X[i])
 		}
 
+		c.Errors[ii] = cost
 		chCost <- cost;
 	}
 
