@@ -99,12 +99,38 @@ func (h *Heap) Remove(i int) (y int) {
 	h.values = h.values[:n]
 	
 	if n != 0 {
-		// sift up if large key
+		// sift up if small key
 		siftup(h.values, i)
-		// sift down if small key
+		// sift down if large key
 		siftdown(h.values, i)
 	}
 
 	return
+}
+
+
+// Update updates the value at the i-th position
+func (h *Heap) Update(i int, x int) {
+	n := len(h.values)
+	if i < 0 || i >= n {
+		// invalid position
+		return
+	}
+	
+	old := h.values[i]
+	h.values[i] = x
+
+	if x < old {
+		// value became smaller: siftup
+		siftup(h.values, i)
+	} else {
+		// value became bigger: siftdown
+		// no real effect if value did not change
+		siftdown(h.values, i)
+	}
+}
+
+func (h *Heap) Len() int {
+	return len(h.values)
 }
 
