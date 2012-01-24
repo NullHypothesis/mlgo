@@ -8,5 +8,6 @@ GOFILES=\
 				kmedians.go\
 				kmedoids.go\
 				mixmodel.go\
+				heap.go\
 
 include $(GOROOT)/src/Make.pkg
