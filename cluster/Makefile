@@ -9,5 +9,6 @@ GOFILES=\
 				kmedoids.go\
 				mixmodel.go\
 				heap.go\
+				activeset.go\
 
 include $(GOROOT)/src/Make.pkg

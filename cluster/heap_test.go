@@ -5,8 +5,6 @@ import (
 	"sort"
 )
 
-import "fmt"
-
 func TestHeap(t *testing.T) {
 	x := []int{4, 2, 5, 8, 9}
 	y := make([]int, len(x))
@@ -49,13 +47,9 @@ func TestHeap(t *testing.T) {
 		t.Errorf("new min updated heap = %d, expected %d", d, x[1])
 	}
 
-	fmt.Println(h)
-
 	// replace the last leaf with the min value
 	a := 1
 	h.Update(h.Len()-1, a)
-
-	fmt.Println(h)
 
 	if d := h.Pop(); d != a {
 		t.Errorf("new min updated (2) heap = %d, expected %d", d, a)
