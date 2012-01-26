@@ -102,6 +102,16 @@ func (h *Heap) Len() int {
 	return len(h.elements)
 }
 
+func (h *Heap) Search(value int) (i int) {
+	i = -1
+	for j, a := range h.elements {
+		if a.Value == value {
+			i = j
+		}
+	}
+	return
+}
+
 func siftup(elements []KeyValue, i int) {
 	// sift up until x's parent <= x
 	// i, j are the indices of x and x's parent

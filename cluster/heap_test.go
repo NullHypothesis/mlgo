@@ -26,6 +26,18 @@ func (x *KeyValues) Copy(y KeyValues) {
 	copy(x.r, y.r)
 }
 
+func (x KeyValues) Min() (min KeyValue) {
+	if len(x.r) > 0 {
+		min = x.r[0]
+		for i := 1; i < len(x.r); i++ {
+			if x.r[i].Key < min.Key {
+				min = x.r[i]
+			}
+		}
+	}
+	return
+}
+
 func TestHeap(t *testing.T) {
 	x := KeyValues{
 		[]KeyValue {
@@ -52,14 +64,17 @@ func TestHeap(t *testing.T) {
 	// sort original array
 	sort.Sort(x)
 
+	if s := h.Search( x.Min().Value ); s != 0 {
+		t.Errorf("Element with min key found at position %d in heap, expected", s, 0)
+	}
 
 	for i := 0; i < x.Len(); i++ {
 		a, b, c := x.r[i].Value, h.Pop(), g.Pop()
 		if a != b {
-			t.Errorf("%d-th min in heapified array = %d, expected %d", i, b, a)
+			t.Errorf("Element with the %d-th min key in heapified array = %d, expected %d", i, b, a)
 		}
 		if a != c {
-			t.Errorf("%d-th min in incrementally built heap = %d, expected %d", i, c, a)
+			t.Errorf("Element with the %d-th min key in incrementally built heap = %d, expected %d", i, c, a)
 		}
 	}
 
@@ -68,19 +83,19 @@ func TestHeap(t *testing.T) {
 	h.Init()
 
 	// replace min value with large value
-	h.Update(0, KeyValue{1,10})
+	a := KeyValue{10, 10}
+	h.Update(0, a)
 
 	if d := h.Pop(); d != x.r[1].Value {
-		t.Errorf("new min updated heap = %d, expected %d", d, x.r[1].Value)
+		t.Errorf("Value of element with min key in updated heap = %d, expected %d", d, x.r[1].Value)
 	}
 
-
 	// replace the last leaf with the min value
-	a := KeyValue{10, 1.0}
+	a = KeyValue{11, 1.0}
 	h.Update(h.Len()-1, a)
 
 	if d := h.Pop(); d != a.Value {
-		t.Errorf("new min updated (2) heap = %d, expected %d", d, a.Value)
+		t.Errorf("Value of element with min key in updated (2) heap = %d, expected %d", d, a.Value)
 	}
 }
 
