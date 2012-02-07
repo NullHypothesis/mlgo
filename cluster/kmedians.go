@@ -92,7 +92,7 @@ func (c *KMedians) maximization() {
 	c.Cost = J / float64( len(c.X) )
 }
 
-// find median and tad
+// find median
 // side-effect: x becomes sorted
 func median(x Vector) (med float64) {
 	sort.Float64s(x)

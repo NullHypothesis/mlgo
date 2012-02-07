@@ -60,15 +60,20 @@ func Distances(X Matrix, metric MetricOp) (D Matrix) {
 	// each row of X is considered one data point
 	m := len(X)
 
+	// allocate space
 	D = make(Matrix, m)
 	for i := 0; i < m; i++ {
 		D[i] = make(Vector, m)
-		for j := 0; j < m; j++ {
-			if i != j {
-				D[i][j] = metric(X[i], X[j])
-			}
+	}
+
+	// calculate distances for lower and upper triangles together
+	for i := 0; i < m; i++ {
+		for j := i+1; j < m; j++ {
+			d := metric(X[i], X[j])
+			D[i][j], D[j][i] = d, d
 		}
 	}
+
 	return
 }
 
