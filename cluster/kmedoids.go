@@ -38,8 +38,8 @@ func (c *KMedoids) Cluster(k int) (classes *Classes) {
 }
 
 type pair struct {
-	key int
-	value float64
+	key float64
+	value int
 }
 
 type pairs []pair
@@ -49,7 +49,7 @@ func (p pairs) Len() int {
 }
 
 func (p pairs) Less(i, j int) bool {
-	return p[i].value < p[j].value
+	return p[i].key < p[j].key
 }
 
 func (p pairs) Swap(i, j int) {
@@ -75,9 +75,9 @@ func (c *KMedoids) initialize() {
 	// sum the normalized distances across all rows
 	p := make(pairs, len(normalized[0]))
 	for i, _ := range(normalized) {
-		p[i].key = i
+		p[i].value = i
 		for _, x := range normalized[i] {
-			p[i].value += x
+			p[i].key += x
 		}
 	}
 
@@ -89,7 +89,7 @@ func (c *KMedoids) initialize() {
 	c.Index = make([]int, len(c.X))
 	for k, _ := range c.Centers {
 		// use the first k data points sorted by summed normalized distances
-		x := c.X[ p[k].key ]
+		x := c.X[ p[k].value ]
 		c.Centers[k] = make(Vector, len(x))
 		copy(c.Centers[k], x)
 	}
