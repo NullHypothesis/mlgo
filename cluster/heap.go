@@ -9,8 +9,8 @@ type Heap struct {
 }
 
 type KeyValue struct {
-	Value int
 	Key float64
+	Value int
 }
 
 func (h *Heap) Init() {

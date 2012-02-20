@@ -10,5 +10,6 @@ GOFILES=\
 				mixmodel.go\
 				heap.go\
 				activeset.go\
+				hclust.go\
 
 include $(GOROOT)/src/Make.pkg
