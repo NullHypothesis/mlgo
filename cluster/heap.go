@@ -31,7 +31,7 @@ func (h *Heap) Push(x KeyValue) {
 	siftup(h.elements, n)
 }
 
-// Pop removes the minimum element
+// Pop removes and returns the minimum element
 // complexity is O(log(n))
 func (h *Heap) Pop() (y int) {
 	n := len(h.elements)
@@ -93,9 +93,9 @@ func (h *Heap) Update(i int, x KeyValue) {
 		siftup(h.elements, i)
 	} else if x.Key > oldKey {
 		// value became bigger: siftdown
-		// no real effect if value did not change
 		siftdown(h.elements, i)
 	}
+	// no action if key did not change
 }
 
 func (h *Heap) Len() int {
