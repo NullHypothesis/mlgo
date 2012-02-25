@@ -41,11 +41,11 @@ func (x KeyValues) Min() (min KeyValue) {
 func TestHeap(t *testing.T) {
 	x := KeyValues{
 		[]KeyValue {
-			KeyValue{1, 4},
+			KeyValue{4, 1},
 			KeyValue{2, 2},
-			KeyValue{3, 5},
-			KeyValue{4, 8},
-			KeyValue{5, 9},
+			KeyValue{5, 3},
+			KeyValue{8, 4},
+			KeyValue{9, 5},
 		},
 	}
 	y := KeyValues{}
@@ -91,7 +91,7 @@ func TestHeap(t *testing.T) {
 	}
 
 	// replace the last leaf with the min value
-	a = KeyValue{11, 1.0}
+	a = KeyValue{1, 11}
 	h.Update(h.Len()-1, a)
 
 	if d := h.Pop(); d != a.Value {
