@@ -14,5 +14,6 @@ GOFILES=\
 				hclust.go\
 				hclust_generic.go\
 				hclust_single.go\
+				equal.go\
 
 include $(GOROOT)/src/Make.pkg
