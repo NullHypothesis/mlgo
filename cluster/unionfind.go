@@ -2,6 +2,7 @@ package cluster
 
 // UnionFind implementing quick-union and find with path compression.
 // NB  New sets are created for each union
+// TODO Keep track of cluster sizes and use union-by-rank?
 
 type UnionFind struct {
 	// parent index array
@@ -32,12 +33,12 @@ func NewUnionFind(n int) *UnionFind {
 // Same memory requirement as union-by-rank, since memory is used to expand
 // the Parent array instead of maintaining a set size array
 func (x *UnionFind) Union(i, j int) {
-	x.Parent[i] = x.newIndex
-	x.Parent[j] = x.newIndex
+	x.Parent[x.Find(i)] = x.newIndex
+	x.Parent[x.Find(j)] = x.newIndex
 	x.newIndex++
 }
 
-// Find finds the index of the set in which i belongs
+// Find finds the index of the disjoint set in which i belongs
 func (x *UnionFind) Find(i int) (r int) {
 	parent := x.Parent
 
@@ -51,5 +52,10 @@ func (x *UnionFind) Find(i int) (r int) {
 	}
 
 	return
+}
+
+// Same returns whether elements i and j belong to the same disjoint set.
+func (x *UnionFind) Same(i, j int) bool {
+	return x.Find(i) == x.Find(j)
 }
 
