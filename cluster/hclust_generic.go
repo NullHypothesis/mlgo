@@ -1,7 +1,8 @@
 package cluster
 
-//TODO Debug
-//     Add handling of different metrics
+//TODO  Add handling of different metrics
+
+import "fmt"
 
 // node
 type node struct {
@@ -13,20 +14,21 @@ type node struct {
 	size int
 }
 
-// Generic hierarchical clustering using Generic's algorithm
+// Generic hierarchical clustering using Mullner's algorithm
 type HClustersGeneric struct {
 	HClusters
-	// all nodes
+	// one node for each data point
 	nodes []node
 	// priority queue (key: minimum distances; value: node index)
 	priority Heap
 }
 
-func NewHClustersGeneric(X Matrix, metric MetricOp) *HClustersGeneric {
+func NewHClustersGeneric(X Matrix, metric MetricOp, method int) *HClustersGeneric {
 	return &HClustersGeneric{
 		HClusters: HClusters{
 			X: X,
 			Metric: metric,
+			Method: method,
 			Distances: Distances(X, metric),
 		},
 	}
@@ -96,14 +98,41 @@ func (c *HClustersGeneric) cluster() {
 		// mark node a as inactive
 		c.actives.Remove(a)
 
+
+		// Problem: a was set a removed node, why?
+
 		// Update the distance matrix
+		fmt.Println("loop")
 		for x := c.actives.Begin(); x < m; x = c.actives.Next(x) {
 			if x != b {
 				// TODO use different update rule for different linkage methods
-				// average linkage
 				sizeA, sizeB := float64(nodeA.size), float64(nodeB.size)
-				d := (sizeA * c.Distances[a][x] + sizeB * c.Distances[b][x]) /
-					(sizeA + sizeB)
+				var d float64
+				switch c.Method {
+					case single_linkage:
+						fmt.Println(a, b, x, c.actives)
+						if c.Distances[a][x] <= c.Distances[b][x] {
+							d = c.Distances[a][x]
+						} else {
+							d = c.Distances[b][x]
+						}
+					case complete_linkage:
+						if c.Distances[a][x] >= c.Distances[b][x] {
+							d = c.Distances[a][x]
+						} else {
+							d = c.Distances[b][x]
+						}
+					case average_linkage:
+						d = (sizeA * c.Distances[a][x] + sizeB * c.Distances[b][x]) / (sizeA + sizeB)
+					case mcquitty_linkage:
+						d = 0
+					case median_linkage:
+						d = 0
+					case centroid_linkage:
+						d = 0
+					case ward_linkage:
+						d = 0
+				}
 				c.Distances[b][x] = d
 				c.Distances[x][b] = d
 			}

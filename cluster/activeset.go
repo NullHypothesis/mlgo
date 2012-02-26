@@ -39,7 +39,7 @@ func (l *ActiveSet) End() int {
 }
 
 func (l *ActiveSet) Remove(i int) {
-	if i < 0 || i >= l.capacity { return }
+	if i < 0 || i >= l.capacity || l.values[i] == -1 { return }
 
 	if i == l.first {
 		// re-assign first to the next node

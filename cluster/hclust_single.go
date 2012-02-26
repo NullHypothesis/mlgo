@@ -17,6 +17,7 @@ func NewHClustersSingle(X Matrix, metric MetricOp) *HClustersSingle {
 		HClusters: HClusters{
 			X: X,
 			Metric: metric,
+			Method: single_linkage,
 			Distances: Distances(X, metric),
 		},
 	}

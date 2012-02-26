@@ -1,12 +1,22 @@
 package cluster
 
-//TODO debug
+const (
+	single_linkage = iota
+	complete_linkage
+	average_linkage
+	mcquitty_linkage
+	median_linkage
+	centroid_linkage
+	ward_linkage
+)
 
 type HClusters struct {
 	// Data points [m x n]
 	X Matrix
 	// Distance metric
 	Metric MetricOp
+	// linkage method
+	Method int
 	// Distances between data points [m x m]
 	Distances Matrix
 	// Step-wise dendrogram
