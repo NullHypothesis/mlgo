@@ -1,11 +1,11 @@
-package cluster
+package mlgo
 
 import "math"
 
 func ApproximatelyEqual(a, b, epsilon float64) bool {
 	var t float64
 	if math.Fabs(a) < math.Fabs(b) {
-		t = math.Fabs(b)
+		t = math.Fabs(b) * epsilon
 	} else {
 		t = math.Fabs(a) * epsilon
 	}
@@ -15,7 +15,7 @@ func ApproximatelyEqual(a, b, epsilon float64) bool {
 func EssentiallyEqual(a, b, epsilon float64) bool {
 	var t float64
 	if math.Fabs(a) > math.Fabs(b) {
-		t = math.Fabs(b)
+		t = math.Fabs(b) * epsilon
 	} else {
 		t = math.Fabs(a) * epsilon
 	}
@@ -25,7 +25,7 @@ func EssentiallyEqual(a, b, epsilon float64) bool {
 func DefinitelyGreaterThan(a, b, epsilon float64) bool {
 	var t float64
 	if math.Fabs(a) < math.Fabs(b) {
-		t = math.Fabs(b)
+		t = math.Fabs(b) * epsilon
 	} else {
 		t = math.Fabs(a) * epsilon
 	}
@@ -35,7 +35,7 @@ func DefinitelyGreaterThan(a, b, epsilon float64) bool {
 func DefinitelyLessThan(a, b, epsilon float64) bool {
 	var t float64
 	if math.Fabs(a) < math.Fabs(b) {
-		t = math.Fabs(b)
+		t = math.Fabs(b) * epsilon
 	} else {
 		t = math.Fabs(a) * epsilon
 	}

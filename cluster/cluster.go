@@ -5,14 +5,13 @@ import (
 )
 
 type Vector mlgo.Vector
-type Matrix  mlgo.Matrix
+type Matrix mlgo.Matrix
 
 const maxValue = mlgo.MaxValue
 
-
 type Classes struct {
 	// classification index
-	Index []int
+	Index Partitions
 	Cost float64
 }
 
@@ -20,7 +19,7 @@ type Clusterer interface {
 	Cluster(k int) (classes *Classes)
 }
 
-// FindClusters runs the clustering algorithm for specified number of repeats
+// FindClusters runs the clustering algorithm for the specified number of repeats.
 func FindClusters(c Clusterer, k int, repeats int) (classes *Classes) {
 	// repeat clustering concurrently
 	ch := make(chan *Classes)

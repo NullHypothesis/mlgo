@@ -3,7 +3,7 @@ package cluster
 import (
 	"rand"
 	"math"
-	"fmt"
+	//"fmt"
 	"mlgo/mlgo"
 )
 
@@ -87,7 +87,7 @@ func (c *MixModel) initialize() {
 		c.Mixings[k] = 1/float64(c.K)
 
 	}
-	fmt.Println("initial: ", c.Means, c.Variances, c.Mixings)
+	//fmt.Println("initial: ", c.Means, c.Variances, c.Mixings)
 }
 
 type pdf func(float64) float64

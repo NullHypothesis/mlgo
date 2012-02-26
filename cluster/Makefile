@@ -3,6 +3,7 @@ include $(GOROOT)/src/Make.inc
 TARG=mlgo/cluster
 GOFILES=\
 				cluster.go\
+				partitions.go\
 				metrics.go\
 				kmeans.go\
 				kmedians.go\
@@ -11,9 +12,9 @@ GOFILES=\
 				heap.go\
 				activeset.go\
 				unionfind.go\
+				coordinates.go\
 				hclust.go\
 				hclust_generic.go\
 				hclust_single.go\
-				equal.go\
 
 include $(GOROOT)/src/Make.pkg

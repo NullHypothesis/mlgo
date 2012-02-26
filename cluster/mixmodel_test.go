@@ -2,12 +2,16 @@ package cluster
 
 import (
 	"testing"
-	"fmt"
 )
 
-func TestMixModel(t *testing.T) {
-	K := 2
-	X := Matrix{
+var mixModelTests = []struct {
+	x Matrix
+	k int
+	index Partitions
+	means Matrix
+}{
+	{
+		Matrix{
 			{-10, -10},
 			{-10,  -8},
 			{ -8,  -8},
@@ -15,17 +19,27 @@ func TestMixModel(t *testing.T) {
 			{ 10,  10},
 			{ 10,   8},
 			{  8,   8},
-			{  8,  10} }
-	
-	c := MixModel{X:X}
-	classes := c.Cluster(K)
+			{  8,  10},
+		},
+		2,
+		Partitions{0, 0, 0, 0, 1, 1, 1, 1},
+		Matrix{
+			{-9, -9},
+			{9, 9},
+		},
+	},
+}
 
-	fmt.Println(classes)
-	fmt.Println(c.Mixings)
-	fmt.Println(c.Means)
-	fmt.Println(c.Variances)
-	fmt.Println(c.posteriors)
-	fmt.Println(c.NLogLikelihood)
-
+func TestMixModel(t *testing.T) {
+	for i, test := range mixModelTests {
+		c := MixModel{X:test.x}
+		classes := c.Cluster(test.k)
+		if !classes.Index.Equal(test.index) {
+			t.Errorf("#%d MixModel.Cluster(%d) got %v, want %v", i, test.k, classes.Index, test.index)
+		}
+		if !CoordinatesSetEqual(c.Means, test.means) {
+			t.Errorf("#%d MixModel.Cluster(%d) got %v, want %v", i, test.k, c.Means, test.means)
+		}
+	}
 }
 
