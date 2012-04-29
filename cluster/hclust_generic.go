@@ -99,7 +99,7 @@ func (c *HClustersGeneric) cluster() {
 		c.actives.Remove(a)
 
 
-		// Problem: a was set a removed node, why?
+		// FIXME: a was set a removed node, why?
 
 		// Update the distance matrix
 		fmt.Println("loop")
