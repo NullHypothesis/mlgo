@@ -41,7 +41,7 @@ func TestKMedoids(t *testing.T) {
 			t.Errorf("#%d KMedoids.Cluster(...) got %v, want %v", i, classes.Index, test.index)
 		}
 		if !CoordinatesSetEqual(c.Centers, test.centers) {
-			t.Errorf("#%d KMedoids.Cluster(...) got %v, want %w", i, c.Centers, test.centers)
+			t.Errorf("#%d KMedoids.Cluster(...) got %v, want %v", i, c.Centers, test.centers)
 		}
 	}
 }

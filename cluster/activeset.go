@@ -65,3 +65,21 @@ func (l *ActiveSet) Len() int {
 	return l.size
 }
 
+// Get returns the jth active element in the set, with boundary wrapping.
+func (l *ActiveSet) Get(j int) int {
+	// wrap overflow values
+	// N.B. In Go, (-a)%b == -(a%b)
+	j %= l.size
+	// wrap negative values
+	if j < 0 {
+		j += l.size
+	}
+
+	// loop to the jth active element
+	i := l.Begin()
+	for k := 0; k < j; k++ {
+		i = l.Next(i)
+	}
+	return i
+}
+

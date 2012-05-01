@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"sort"
-	"fmt"
 )
 
 type KMedians struct {
@@ -22,11 +21,9 @@ func (c *KMedians) Cluster(k int) (classes *Classes) {
 	if c.X == nil { return }
 	c.K = k
 	c.initialize()
-	fmt.Printf("Cluster(.): %v\n", c);
 	i := 0
 	for !c.expectation() && (c.MaxIter == 0 || i < c.MaxIter) {
 		c.maximization()
-		fmt.Printf("Cluster(.): %v\n", c);
 		i++
 	}
 

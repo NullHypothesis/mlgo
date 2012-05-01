@@ -40,5 +40,16 @@ func TestActiveSet(t *testing.T) {
 		t.Errorf("activeSet.Len() == %d, expected %d", activeSet.Len(), n2)
 	}
 
+	// At this point, the elements are: [1, 3, 4, 5, 7, 8]
+	if activeSet.Get(3) != 5 {
+		t.Errorf("activeSet.Get(3) == %d, expected 5", activeSet.Get(3))
+	}
+	if activeSet.Get(7) != 3 {
+		t.Errorf("activeSet.Get(7) == %d, expected 3", activeSet.Get(7))
+	}
+	if activeSet.Get(-4) != 4 {
+		t.Errorf("activeSet.Get(-4) == %d, expected 4", activeSet.Get(4))
+	}
+
 }
 

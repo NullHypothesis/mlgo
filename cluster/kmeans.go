@@ -55,9 +55,14 @@ func (c *KMeans) Cluster(k int) (classes *Classes) {
 // initialize the cluster centroids by randomly selecting data points
 func (c *KMeans) initialize() {
 	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)
-	c.Index = make([]int, len(c.X))
+	n := len(c.X)
+	c.Index = make([]int, n)
+	activeSet := NewActiveSet(n)
 	for k, _ := range c.Centers {
-		x := c.X[rand.Intn(len(c.X))]
+		i := rand.Intn(activeSet.Len())
+		x := c.X[i]
+		activeSet.Remove(i)
+		// copy data vector
 		c.Centers[k] = make(Vector, len(x))
 		copy(c.Centers[k], x)
 	}
