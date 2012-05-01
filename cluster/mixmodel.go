@@ -1,10 +1,10 @@
 package cluster
 
 import (
-	"rand"
 	"math"
+	"math/rand"
 	//"fmt"
-	"mlgo/mlgo"
+	"mlgo/base"
 )
 
 type MixModel struct {
@@ -29,7 +29,9 @@ const logProbEpsilon = 0.01
 // Cluster runs the algorithm once with random initialization
 // Returns the classification information
 func (c *MixModel) Cluster(k int) (classes *Classes) {
-	if c.X == nil { return }
+	if c.X == nil {
+		return
+	}
 	c.K = k
 	c.initialize()
 	i := 0
@@ -40,7 +42,7 @@ func (c *MixModel) Cluster(k int) (classes *Classes) {
 
 	// copy classification information
 	classes = &Classes{
-		make([]int, len(c.X)), c.NLogLikelihood }
+		make([]int, len(c.X)), c.NLogLikelihood}
 	for i, pp := range c.posteriors {
 		class, maxPosterior := 0, 0.0
 		for k, p := range pp {
@@ -80,11 +82,11 @@ func (c *MixModel) initialize() {
 		// use mean of each feature plus some noise
 		for j := 0; j < len(means); j++ {
 			sd := math.Sqrt(variances[j])
-			c.Means[k][j] = means[j] + (rand.Float64() * sd - sd/2)
+			c.Means[k][j] = means[j] + (rand.Float64()*sd - sd/2)
 		}
 
 		// uniform mixing proportions
-		c.Mixings[k] = 1/float64(c.K)
+		c.Mixings[k] = 1 / float64(c.K)
 
 	}
 	//fmt.Println("initial: ", c.Means, c.Variances, c.Mixings)
@@ -94,8 +96,8 @@ type pdf func(float64) float64
 
 func normPdf(mu, sigma2 float64) func(float64) float64 {
 	return func(x float64) float64 {
-		d := x-mu
-		return 1 / math.Sqrt(2*math.Pi*sigma2) * math.Exp(-d*d / (2*sigma2))
+		d := x - mu
+		return 1 / math.Sqrt(2*math.Pi*sigma2) * math.Exp(-d*d/(2*sigma2))
 	}
 }
 
@@ -139,7 +141,7 @@ func (c *MixModel) expectation() (converged bool) {
 	// (negative log likelihood is guaranteed to be non-increasing).
 	// If the current value does not differ from the previous,
 	// the algorithm has converged (possibly to a local minimum).
-	if c.NLogLikelihood - model > logProbEpsilon {
+	if c.NLogLikelihood-model > logProbEpsilon {
 		converged = false
 	} else {
 		converged = true
@@ -154,13 +156,13 @@ func (c *MixModel) expectation() (converged bool) {
 func (c *MixModel) maximization() {
 
 	for k := 0; k < c.K; k++ {
-		
+
 		// Compute new mixing proportions
 		sum := 0.0
 		for i, _ := range c.posteriors {
 			sum += c.posteriors[i][k]
 		}
-		c.Mixings[k] = sum / float64( len(c.posteriors) )
+		c.Mixings[k] = sum / float64(len(c.posteriors))
 
 		// Compute new means
 		for d, _ := range c.Means[k] {
@@ -189,4 +191,3 @@ func (c *MixModel) maximization() {
 	}
 
 }
-

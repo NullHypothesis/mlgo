@@ -2,7 +2,7 @@ package cluster
 
 import (
 	"sort"
-	"mlgo/mlgo"
+	"mlgo/base"
 )
 
 // CoordinatesSetEqual returns whether the a and b contain the same set of coordinates.

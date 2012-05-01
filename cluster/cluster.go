@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"mlgo/mlgo"
+	"mlgo/base"
 )
 
 type Vector mlgo.Vector

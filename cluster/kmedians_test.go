@@ -4,6 +4,24 @@ import (
 	"testing"
 )
 
+var medianTests = []struct {
+	in Vector
+	ans float64
+}{
+	{Vector{1, 2, 3, 4, 5}, 3},
+	{Vector{3, 2, 1, 5, 4}, 3},
+	{Vector{1, 1, 4, 5}, 2.5},
+}
+
+func TestMedian(t *testing.T) {
+	for i, test := range medianTests {
+		out := median(test.in)
+		if out != test.ans {
+			t.Errorf("#%d median(%v) got %v, want %v", i, test.in, out, test.ans)
+		}
+	}
+}
+
 var kmediansTests = []struct {
 	x Matrix
 	metric MetricOp
@@ -41,7 +59,7 @@ func TestKMedians(t *testing.T) {
 			t.Errorf("#%d KMedians.Cluster(...) got %v, want %v", i, classes.Index, test.index)
 		}
 		if !CoordinatesSetEqual(c.Centers, test.centers) {
-			t.Errorf("#%d KMedians.Cluster(...) got %v, want %w", i, c.Centers, test.centers)
+			t.Errorf("#%d KMedians.Cluster(...) got %v, want %v", i, c.Centers, test.centers)
 		}
 	}
 }

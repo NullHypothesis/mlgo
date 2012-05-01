@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"rand"
+	"math/rand"
 )
 
 type KMeans struct {
@@ -25,7 +25,7 @@ type KMeans struct {
 
 func NewKMeans(X Matrix, metric MetricOp) *KMeans {
 	return &KMeans{
-		X: X,
+		X:      X,
 		Metric: metric,
 	}
 }
@@ -33,7 +33,9 @@ func NewKMeans(X Matrix, metric MetricOp) *KMeans {
 // Cluster runs the k-means algorithm once with random initialization
 // Returns the classification information
 func (c *KMeans) Cluster(k int) (classes *Classes) {
-	if c.X == nil { return }
+	if c.X == nil {
+		return
+	}
 	c.K = k
 	c.initialize()
 	i := 0
@@ -44,7 +46,7 @@ func (c *KMeans) Cluster(k int) (classes *Classes) {
 
 	// copy classifcation information
 	classes = &Classes{
-		make([]int, len(c.X)), c.Cost }
+		make([]int, len(c.X)), c.Cost}
 	copy(classes.Index, c.Index)
 
 	return
@@ -55,7 +57,7 @@ func (c *KMeans) initialize() {
 	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)
 	c.Index = make([]int, len(c.X))
 	for k, _ := range c.Centers {
-		x := c.X[ rand.Intn(len(c.X)) ]
+		x := c.X[rand.Intn(len(c.X))]
 		c.Centers[k] = make(Vector, len(x))
 		copy(c.Centers[k], x)
 	}
@@ -66,7 +68,7 @@ func (c *KMeans) initialize() {
 func (c *KMeans) expectation() (converged bool) {
 	// find the centroids that is closest to the current data point
 	assign := func(i int, chIndex chan int) {
-		index, min :=  0, maxValue
+		index, min := 0, maxValue
 		// find the center with the minimum distance
 		for ii := 0; ii < len(c.Centers); ii++ {
 			distance := c.Metric(c.X[i], c.Centers[ii])
@@ -133,7 +135,7 @@ func (c *KMeans) maximization() {
 		}
 
 		c.Errors[ii] = cost
-		chCost <- cost;
+		chCost <- cost
 	}
 
 	// process cluster centers concurrently
@@ -145,9 +147,8 @@ func (c *KMeans) maximization() {
 	// collect results
 	J := 0.0
 	for ii := 0; ii < len(c.Centers); ii++ {
-		J += <-ch;
+		J += <-ch
 	}
-	c.Cost = J / float64( len(c.X) )
+	c.Cost = J / float64(len(c.X))
 
 }
-
