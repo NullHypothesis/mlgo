@@ -29,7 +29,7 @@ func (c *KMedians) Cluster(k int) (classes *Classes) {
 
 	// copy classifcation information
 	classes = &Classes{
-		make([]int, len(c.X)), c.Cost }
+		make([]int, len(c.X)), k, c.Cost}
 	copy(classes.Index, c.Index)
 
 	return

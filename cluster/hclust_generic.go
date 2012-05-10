@@ -34,18 +34,18 @@ func NewHClustersGeneric(X Matrix, metric MetricOp, method int) *HClustersGeneri
 	}
 }
 
-func (c *HClustersGeneric) Cluster(K int) (classes *Classes) {
+func (c *HClustersGeneric) Cluster(k int) (classes *Classes) {
 	if c.Distances == nil { return }
 
 	c.initialize()
 
 	c.cluster()
 
-	c.CutTree(K)
+	c.CutTree(k)
 
 	// copy classification information
 	classes = &Classes{
-		make([]int, len(c.X)), c.Cost }
+		make([]int, len(c.X)), k, c.Cost }
 	copy(classes.Index, c.Index)
 
 	return

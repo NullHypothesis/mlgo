@@ -23,18 +23,18 @@ func NewHClustersSingle(X Matrix, metric MetricOp) *HClustersSingle {
 	}
 }
 
-func (c *HClustersSingle) Cluster(K int) (classes *Classes) {
+func (c *HClustersSingle) Cluster(k int) (classes *Classes) {
 	if c.Distances == nil { return }
-	c.K = K
+	c.K = k
 	c.initialize()
 
 	c.cluster()
 
-	c.CutTree(K)
+	c.CutTree(k)
 
 	// copy classification information
 	classes = &Classes{
-		make([]int, len(c.X)), c.Cost }
+		make([]int, len(c.X)), k, c.Cost }
 	copy(classes.Index, c.Index)
 
 	return

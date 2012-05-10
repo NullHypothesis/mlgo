@@ -42,7 +42,7 @@ func (c *MixModel) Cluster(k int) (classes *Classes) {
 
 	// copy classification information
 	classes = &Classes{
-		make([]int, len(c.X)), c.NLogLikelihood}
+		make([]int, len(c.X)), k, c.NLogLikelihood}
 	for i, pp := range c.posteriors {
 		class, maxPosterior := 0, 0.0
 		for k, p := range pp {

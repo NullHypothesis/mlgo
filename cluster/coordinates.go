@@ -11,6 +11,7 @@ func CoordinatesSetEqual (X, Y Matrix) bool {
 
 	// declare mlgo.Matrix, which has all the associated methods
 	var A, B mlgo.Matrix
+	// copy matrices, since they will be sorted
 	A = mlgo.CopyMatrix(X)
 	B = mlgo.CopyMatrix(Y)
 

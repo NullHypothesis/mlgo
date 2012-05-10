@@ -4,6 +4,8 @@ import (
 	"math/rand"
 )
 
+// TODO Make repeat runs internal to KMeans, KMedians, and KMedoids
+
 type KMeans struct {
 	// Matrix of data points
 	X Matrix
@@ -46,7 +48,7 @@ func (c *KMeans) Cluster(k int) (classes *Classes) {
 
 	// copy classifcation information
 	classes = &Classes{
-		make([]int, len(c.X)), c.Cost}
+		make([]int, len(c.X)), k, c.Cost}
 	copy(classes.Index, c.Index)
 
 	return

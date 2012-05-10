@@ -15,20 +15,18 @@ type HClusters struct {
 	X Matrix
 	// Distance metric
 	Metric MetricOp
+	// number of clusters
+	K int
 	// linkage method
 	Method int
 	// Distances between data points [m x m]
 	Distances Matrix
 	// Step-wise dendrogram
 	Dendrogram Linkages
-
-	Cost float64
-
-	K int
-
 	// cluster center assignment index
 	Index []int
-
+	// cost
+	Cost float64
 	// indices of active elements
 	actives ActiveSet
 }
