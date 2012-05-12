@@ -1,0 +1,3 @@
+Remove re-definition of Matrix and Vector.
+Implement Subclusterer interface for clustering algorithms.
+Make FindClusters internal to clustering algorithms with random initializations?

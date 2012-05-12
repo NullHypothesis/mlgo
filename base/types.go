@@ -103,6 +103,15 @@ func (X Matrix) Copied() (Y Matrix) {
 	return
 }
 
+func (X Matrix) Slice(idx []int) (Y Matrix) {
+	Y = make(Matrix, len(idx))
+	for i, ii := range idx  {
+		Y[i] = make(Vector, len(X[ii]))
+		copy(Y[i], X[ii])
+	}
+	return
+}
+
 func (X Matrix) Equal(Y Matrix) bool {
 	const epsilon = 1e-6
 	for i := range X {
