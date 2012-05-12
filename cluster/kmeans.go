@@ -13,6 +13,8 @@ type KMeans struct {
 	Metric MetricOp
 	// number of clusters
 	K int
+	// Distances between data points [m x m]
+	D *Distances
 	// Matrix of centroids	
 	Centers Matrix
 	// Total distance of members to each centroid
@@ -29,6 +31,7 @@ func NewKMeans(X Matrix, metric MetricOp) *KMeans {
 	return &KMeans{
 		X:      X,
 		Metric: metric,
+		D: NewDistances(X, metric),
 	}
 }
 

@@ -31,7 +31,7 @@ var silhouetteTests = []struct {
 
 func TestSilhouettes(t *testing.T) {
 	for i, test := range silhouetteTests {
-		d := Distances(test.x, test.metric)
+		d := NewDistances(test.x, test.metric).rep
 		sil := Silhouettes( Segregations(d, test.classes), test.classes.Index )
 		if !mlgo.Vector(test.silhouettes).Equal(mlgo.Vector(sil)) {
 			t.Errorf("#%d Silhouettes(Segregations(...), ...) got %v, want %v", i, sil, test.silhouettes)

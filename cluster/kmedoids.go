@@ -4,16 +4,18 @@ import (
 	"sort"
 )
 
+// TODO make KMedoids use Distances class
+
 type KMedoids struct {
 	KMeans
 	// Distances between data points [m x m]
-	Distances Matrix
+	Dist Matrix
 }
 
 func NewKMedoids(X Matrix, metric MetricOp) *KMedoids {
 	return &KMedoids{
 		KMeans: KMeans{X:X, Metric:metric},
-		Distances: Distances(X, metric),
+		Dist: NewDistances(X, metric).rep,
 	}
 }
 
@@ -59,8 +61,8 @@ func (p pairs) Swap(i, j int) {
 // Initialize the medoids by choosing the most central k data points
 func (c *KMedoids) initialize() {
 	// calculate normalized distances
-	normalized := make(Matrix, len(c.Distances))
-	for i, d := range c.Distances {
+	normalized := make(Matrix, len(c.Dist))
+	for i, d := range c.Dist {
 		normalized[i] = make(Vector, len(d))
 		sum := 0.0
 		for j, x := range d {
@@ -118,7 +120,7 @@ func (c *KMedoids) maximization() {
 		n = 0
 		for _, i := range memberIdx {
 			for _, j := range memberIdx {
-				totalDistances[n] += c.Distances[i][j]
+				totalDistances[n] += c.Dist[i][j]
 			}
 			n++
 		}

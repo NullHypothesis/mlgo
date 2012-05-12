@@ -68,23 +68,3 @@ func Minkowski(a, b Vector, p float64) (d float64) {
 	return
 }
 
-func Distances(X Matrix, metric MetricOp) (D Matrix) {
-	// each row of X is considered one data point
-	m := len(X)
-
-	// allocate space
-	D = make(Matrix, m)
-	for i := 0; i < m; i++ {
-		D[i] = make(Vector, m)
-	}
-
-	// calculate distances for lower and upper triangles together
-	for i := 0; i < m; i++ {
-		for j := i + 1; j < m; j++ {
-			d := metric(X[i], X[j])
-			D[i][j], D[j][i] = d, d
-		}
-	}
-
-	return
-}

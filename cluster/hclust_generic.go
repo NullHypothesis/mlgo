@@ -29,13 +29,13 @@ func NewHClustersGeneric(X Matrix, metric MetricOp, method int) *HClustersGeneri
 			X: X,
 			Metric: metric,
 			Method: method,
-			Distances: Distances(X, metric),
+			D: NewDistances(X, metric),
 		},
 	}
 }
 
 func (c *HClustersGeneric) Cluster(k int) (classes *Classes) {
-	if c.Distances == nil { return }
+	if c.D == nil { return }
 
 	c.initialize()
 
@@ -53,7 +53,7 @@ func (c *HClustersGeneric) Cluster(k int) (classes *Classes) {
 
 // assume initialization has been run
 func (c *HClustersGeneric) cluster() {
-	m := len(c.Distances)
+	m := len(c.X)
 
 	// NB In updating nearest neighbour, only the node with the smaller index
 	//    has the correct information in a pair of nearest neighbour,
@@ -69,13 +69,13 @@ func (c *HClustersGeneric) cluster() {
 		b, distance := nodeA.nearest, nodeA.minDistance
 
 		// Re-calculate nearest neighbour, if necessary
-		for ; distance > c.Distances[a][b]; {
+		for ; distance > c.D.rep[a][b]; {
 			// find new nearest neighbour for a
 			x := c.actives.Next(a)
-			min, minIdx := c.Distances[a][x], x
+			min, minIdx := c.D.rep[a][x], x
 			for x = c.actives.Next(x); x < m; x = c.actives.Next(x) {
-				if c.Distances[a][x] < min {
-					min = c.Distances[a][x]
+				if c.D.rep[a][x] < min {
+					min = c.D.rep[a][x]
 				}
 			}
 			// update priority queue and node
@@ -111,19 +111,19 @@ func (c *HClustersGeneric) cluster() {
 				switch c.Method {
 					case single_linkage:
 						fmt.Println(a, b, x, c.actives)
-						if c.Distances[a][x] <= c.Distances[b][x] {
-							d = c.Distances[a][x]
+						if c.D.rep[a][x] <= c.D.rep[b][x] {
+							d = c.D.rep[a][x]
 						} else {
-							d = c.Distances[b][x]
+							d = c.D.rep[b][x]
 						}
 					case complete_linkage:
-						if c.Distances[a][x] >= c.Distances[b][x] {
-							d = c.Distances[a][x]
+						if c.D.rep[a][x] >= c.D.rep[b][x] {
+							d = c.D.rep[a][x]
 						} else {
-							d = c.Distances[b][x]
+							d = c.D.rep[b][x]
 						}
 					case average_linkage:
-						d = (sizeA * c.Distances[a][x] + sizeB * c.Distances[b][x]) / (sizeA + sizeB)
+						d = (sizeA * c.D.rep[a][x] + sizeB * c.D.rep[b][x]) / (sizeA + sizeB)
 					case mcquitty_linkage:
 						d = 0
 					case median_linkage:
@@ -133,8 +133,8 @@ func (c *HClustersGeneric) cluster() {
 					case ward_linkage:
 						d = 0
 				}
-				c.Distances[b][x] = d
-				c.Distances[x][b] = d
+				c.D.rep[b][x] = d
+				c.D.rep[x][b] = d
 			}
 		}
 
@@ -153,11 +153,11 @@ func (c *HClustersGeneric) cluster() {
 		// Check if other nodes now have b as the nearest node
 		// Since the current nearest neighbour may be inaccurate...
 		for x := c.actives.Begin(); x < b; x = c.actives.Next(x) {
-			if c.Distances[x][b] < c.nodes[x].minDistance {
+			if c.D.rep[x][b] < c.nodes[x].minDistance {
 				// b is now the nearest neighbour for x
 				c.nodes[x].nearest = b
 				// preserve a lower bound for minDistance
-				d := c.Distances[x][b]
+				d := c.D.rep[x][b]
 				c.nodes[x].minDistance = d
 				// update priority queue: bottle neck in worst case time complexity
 				i := c.priority.Search(x)
@@ -168,8 +168,8 @@ func (c *HClustersGeneric) cluster() {
 		// Update nearest neighbour for node b
 		min, minIdx := nodeB.minDistance, nodeB.nearest
 		for x := c.actives.Next(b); x < m; x = c.actives.Next(x) {
-			if c.Distances[b][x] < min {
-				min, minIdx = c.Distances[b][x], x
+			if c.D.rep[b][x] < min {
+				min, minIdx = c.D.rep[b][x], x
 			}
 		}
 		c.nodes[b].minDistance, c.nodes[b].nearest = min, minIdx
@@ -195,11 +195,11 @@ func (c *HClustersGeneric) initialize() {
 	for i := c.actives.Begin(); i < m-1; i = c.actives.Next(i) {
 		// set nearest neighbour to the next node
 		j := i+1
-		min, minIdx := c.Distances[i][j], j
+		min, minIdx := c.D.rep[i][j], j
 		// check later nodes
 		for j = i+2; j < m; j++ {
-			if c.Distances[i][j] < min {
-				min = c.Distances[i][j]
+			if c.D.rep[i][j] < min {
+				min = c.D.rep[i][j]
 			}
 		}
 		c.nodes[i] = node{nearest:minIdx, minDistance:min, size:1}

@@ -20,7 +20,7 @@ type HClusters struct {
 	// linkage method
 	Method int
 	// Distances between data points [m x m]
-	Distances Matrix
+	D *Distances
 	// Step-wise dendrogram
 	Dendrogram Linkages
 	// cluster center assignment index

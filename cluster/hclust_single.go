@@ -18,13 +18,13 @@ func NewHClustersSingle(X Matrix, metric MetricOp) *HClustersSingle {
 			X: X,
 			Metric: metric,
 			Method: single_linkage,
-			Distances: Distances(X, metric),
+			D: NewDistances(X, metric),
 		},
 	}
 }
 
 func (c *HClustersSingle) Cluster(k int) (classes *Classes) {
-	if c.Distances == nil { return }
+	if c.D == nil { return }
 	c.K = k
 	c.initialize()
 
@@ -71,7 +71,7 @@ func (c *HClustersSingle) cluster() {
 		// while keeping track of minimum
 		min, minIdx := maxValue, 0
 		for s := c.actives.Begin(); s < m; s = c.actives.Next(s) {
-			d := c.Distances[s][current]
+			d := c.D.rep[s][current]
 			if d < c.minDistances[s] {
 				c.minDistances[s] = d
 			}
