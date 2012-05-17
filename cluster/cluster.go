@@ -26,6 +26,7 @@ func (c *Classes) Sizes() []int {
 	return sizes
 }
 
+// Partitions return an array of partition element arrays
 func (c *Classes) Partitions() [][]int {
 	// allocate space
 	sizes := c.Sizes()
@@ -46,14 +47,17 @@ func (c *Classes) Partitions() [][]int {
 
 type Clusterer interface {
 	// Cluster clusters data points into k clusters.
-	Cluster(k int) (classes *Classes)
+	Cluster(k int) *Classes
+	Len() int
 }
 
 type Subclusterer interface {
+	Clusterer
 	// Subcluster clusters a subset of data points specified by idx into k clusters.
-	Subcluster(k int, idx []int) (classes *Classes)
+	Subcluster(k int, idx []int) *Classes
 }
 
+// FIXME There should be multiple instances of Clusterer
 // FindClusters runs the clustering algorithm for the specified number of repeats.
 func FindClusters(c Clusterer, k int, repeats int) (classes *Classes) {
 	// repeat clustering concurrently

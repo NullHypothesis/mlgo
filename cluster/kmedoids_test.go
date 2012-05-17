@@ -35,7 +35,7 @@ var kmedoidsTests = []struct {
 
 func TestKMedoids(t *testing.T) {
 	for i, test := range kmedoidsTests {
-		c := NewKMedoids(test.x, test.metric)
+		c := NewKMedoids(test.x, test.metric, nil)
 		classes := c.Cluster(test.k)
 		if !classes.Index.Equal(test.index) {
 			t.Errorf("#%d KMedoids.Cluster(...) got %v, want %v", i, classes.Index, test.index)

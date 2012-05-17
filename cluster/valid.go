@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"mlgo/base"
+	"math"
 )
 
 // Validation measures
@@ -36,18 +37,25 @@ func Segregations(distances Matrix, classes *Classes) (S Matrix) {
 		}
 		// derive mean via division by cluster sizes
 		for jj := 0; jj < classes.K; jj++ {
-			S[i][jj] /= float64(sizes[jj])
+			if sizes[jj] > 1 {
+				S[i][jj] /= float64(sizes[jj])
+			} else if sizes[jj] == 0 {
+				S[i][jj] = math.Inf(1)
+			}
 		}
 		// correct mean for own cluster (divide by size-1 instead of size)
+		// element in singleton cluster has 0 distance to itself
 		c := index[i]
 		size := float64(sizes[c])
-		S[i][c] *= size / (size - 1)
+		if size > 1 {
+			S[i][c] *= size / (size - 1)
+		}
 	}
 	return
 }
 
-// Separations return a matrix of distances between data points and cluster centers
-func Separations(X, centers Matrix, metric MetricOp) (S Matrix) {
+// SegregationsFromCenters return a matrix of distances between data points and cluster centers
+func SegregationsFromCenters(X, centers Matrix, metric MetricOp) (S Matrix) {
 	// each row of x is considered one data point
 	m := len(X)
 	k := len(centers)
@@ -68,34 +76,46 @@ func Separations(X, centers Matrix, metric MetricOp) (S Matrix) {
 }
 
 // Silhouettes returns a vector of silhouettes for data points.
-// If S is a segregation matrix, then the returned values are conventionally considered as silhouettes.
-// If S is a separation matrix, then the returned values are can be considered as shadows.
-// TODO special case: i is in a singleton cluster; silhouette should be 0 intead of 1
+// If S is a matrix of average distances from each elements to other elements in each cluster, then the returned values are conventionally considered as silhouettes.
+// If S is a matrix of distances from each element to each cluster center, then the returned values are can be considered as shadows.
 // TODO special case: silhouette is not defined for two singleton clusters
 // TODO faithful calculation of "shadow" as defined by Friedrich Leisch (average two nearest centroids for 'b')
-func Silhouettes(S Matrix, index Partitions) (s Vector)  {
+func Silhouettes(S Matrix, classes *Classes) (s Vector)  {
 	m := len(S)
 	k := len(S[0])
 
 	s = make(Vector, m)
 
+	index := classes.Index
+	sizes := classes.Sizes()
+
 	// calculate silouettes
 	for i := 0; i < m; i++ {
-		// distance to own cluster
 		c := index[i]
+		if sizes[c] == 1 {
+			// element is in a singleton class: silhouette is 0 by definition
+			//s[i] = 0
+			continue
+		}
+		// distance to own cluster
 		a := S[i][c]
 		// distance to nearest cluster
-		b := maxValue
+		b := math.Inf(1)
 		for j := 0; j < k; j++ {
 			if j != c && S[i][j] < b {
 				b = S[i][j]
 			}
 		}
-		max := a
-		if a < b {
-			max = b
+		if b < math.Inf(1) {
+			max := a
+			if a < b {
+				max = b
+			}
+			s[i] = (b - a) / max
+		} else {
+			// no other cluster is available: set silhouette to 0
+			//s[i] = 0
 		}
-		s[i] = (b - a) / max
 	}
 	return
 }
@@ -103,19 +123,18 @@ func Silhouettes(S Matrix, index Partitions) (s Vector)  {
 
 type Split struct {
 	K int
+	Cl *Classes
 	Cost float64
 }
 
-func Mean(x Vector) (m float64) {
-	for i := 0; i < len(x); i++ {
-		m += x[i]
-	}
-	m /= float64(len(x))
-	return
+type Segregator interface {
+	Clusterer
+	Segregations(classes *Classes) Matrix
 }
 
-func SplitByAvgSil(distances Matrix, clust Clusterer, K int) (s Split) {
-	m := len(distances)
+// TODO Do not count the silhouette of singleton clusters in the average?
+func SegregateByMeanSil(seg Segregator, K int) (s Split) {
+	m := seg.Len()
 
 	// silhouette can only be calculated for 2 <= k <= m - 1
 
@@ -125,29 +144,37 @@ func SplitByAvgSil(distances Matrix, clust Clusterer, K int) (s Split) {
 
 	// maximize average silhouette
 	avgSil := -1.0
-	opt_k := 0
+	optK := 0
+	var optClasses *Classes
 	for k := 2; k <= K; k++ {
-		classes := clust.Cluster(k)
-		S := Segregations(distances, classes)
-		sil := Silhouettes(S, classes.Index)
-		t := Mean(sil)
+		classes := seg.Cluster(k)
+		sil := Silhouettes(seg.Segregations(classes), classes)
+		t := mlgo.Vector(sil).Mean()
 		if t > avgSil {
 			avgSil = t
-			opt_k = k
+			optK = k
+			optClasses = classes
 		}
 	}
 
-	s.K = opt_k
+	s.K = optK
 	s.Cost = 1 - avgSil
+	s.Cl = optClasses
 	return
 }
 
-//TODO allow functions to take an index vector s.t. Xsub and distancesSub do not need to be copied?
+type Splitter interface {
+	Segregator
+	Subset(index []int) Splitter
+}
+
+//TODO allow functions to take an index vector s.t. distances subset do not need to be copied?
+//TODO median split silhouette
 
 // K is the maximum number of clusters.
 // L is the maximum number of children clusters for any cluster.
-func SplitByAvgSplitSil(distances Matrix, clust Clusterer, K, L int) (s Split) {
-	m := len(distances)
+func SplitByMeanSplitSil(splitter Splitter, K, L int) (s Split) {
+	m := splitter.Len()
 
 	// average split silhouette can be only be calculated for 1 <= k <= m/3
 	// if k > m/3, at least one cluster would have < 3 elements
@@ -158,26 +185,36 @@ func SplitByAvgSplitSil(distances Matrix, clust Clusterer, K, L int) (s Split) {
 		K = m / 3
 	}
 
-	avgSplitSil := maxValue
-	opt_k := 0
-	splitSil := make(Vector, K)
+	// minimize the mean split silhouette
+	avgSplitSil := math.Inf(1)
+	optK := 0
+	var optClasses *Classes
 	for k := 1; k <= K; k++ {
-		classes := clust.Cluster(k)
+		splitSil := make(Vector, k)
+		classes := splitter.Cluster(k)
 		partitions := classes.Partitions()
+		n := 0
 		for kk := 0; kk < classes.K; kk++ {
-			distancesSub := Matrix(mlgo.Matrix(distances).Slice(partitions[kk]))
-			clustSplit := SplitByAvgSil(distancesSub, clust, L)
-			splitSil[kk] = 1 - clustSplit.Cost
+			clustSplit := SegregateByMeanSil(splitter.Subset(partitions[kk]), L)
+			if clustSplit.K > 0 {
+				// cluster could be split further into children clusters
+				splitSil[n] = 1 - clustSplit.Cost
+				n++
+			}
 		}
-		t := Mean(splitSil)
+		// remove empty elements at end to account for clusters that could be not split further
+		splitSil = splitSil[:n]
+		t := mlgo.Vector(splitSil).Mean()
 		if t < avgSplitSil {
 			avgSplitSil = t
-			opt_k = k
+			optK = k
+			optClasses = classes
 		}
 	}
 
-	s.K = opt_k
+	s.K = optK
 	s.Cost = avgSplitSil
+	s.Cl = optClasses
 	return
 }
 

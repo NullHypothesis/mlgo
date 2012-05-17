@@ -12,13 +12,16 @@ type HClustersSingle struct {
 	minDistances []float64
 }
 
-func NewHClustersSingle(X Matrix, metric MetricOp) *HClustersSingle {
+func NewHClustersSingle(X Matrix, metric MetricOp, d *Distances) *HClustersSingle {
+	if d == nil {
+		d = NewDistances(X, metric)
+	}
 	return &HClustersSingle{
 		HClusters: HClusters{
 			X: X,
 			Metric: metric,
 			Method: single_linkage,
-			D: NewDistances(X, metric),
+			D: d,
 		},
 	}
 }

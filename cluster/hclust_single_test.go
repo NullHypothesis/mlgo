@@ -59,7 +59,7 @@ var hClustersSingleTests = []struct{
 
 func TestHClustersSingle(t *testing.T) {
 	for i, test := range hClustersSingleTests {
-		c := NewHClustersSingle(test.x, test.metric)
+		c := NewHClustersSingle(test.x, test.metric, nil)
 		classes := c.Cluster(test.k)
 		if !classes.Index.Equal(test.index) {
 			t.Errorf("#%d HClustersSingle.Cluster(%d) got %v, want %v", i, test.k, classes.Index, test.index)

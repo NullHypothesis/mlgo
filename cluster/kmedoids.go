@@ -2,9 +2,12 @@ package cluster
 
 import (
 	"sort"
+	"mlgo/base"
 )
 
 // TODO make KMedoids use Distances class
+// FIXME KMedoids may initialize to 'duplicate' data points when there are ties,
+//       which will result in fewer than k clusters
 
 type KMedoids struct {
 	KMeans
@@ -12,15 +15,18 @@ type KMedoids struct {
 	Dist Matrix
 }
 
-func NewKMedoids(X Matrix, metric MetricOp) *KMedoids {
+func NewKMedoids(X Matrix, metric MetricOp, dist Matrix) *KMedoids {
+	if dist == nil {
+		dist = NewDistances(X, metric).rep
+	}
 	return &KMedoids{
 		KMeans: KMeans{X:X, Metric:metric},
-		Dist: NewDistances(X, metric).rep,
+		Dist: dist,
 	}
 }
 
-// Cluster runs the k-medoids algorithm once with random initialization
-// Returns the classification information
+// Cluster runs the k-medoids algorithm.
+// Returns the classification information.
 func (c *KMedoids) Cluster(k int) (classes *Classes) {
 	if c.X == nil { return }
 	c.K = k
@@ -30,13 +36,25 @@ func (c *KMedoids) Cluster(k int) (classes *Classes) {
 		c.maximization()
 		i++
 	}
+	if i == 0 {
+		// convergence is achieved right after initialization...
+		// run maximization at least once to calculate cost
+		c.maximization()
+	}
 
 	// copy classifcation information
 	classes = &Classes{
 		make([]int, len(c.X)), k, c.Cost }
-	copy(classes.Index, c.Index)
+	copy(classes.Index, c.Clusters)
 
 	return
+}
+
+func (c *KMedoids) Subset(index []int) Splitter {
+	X := Matrix(mlgo.Matrix(c.X).Slice(index))
+	// FIXME!!  *dice* the original c.Dist s.t. the correct columns are accessed! (the first n columns are not necessarily the correct columns!)
+	dist := Matrix(mlgo.Matrix(c.Dist).Slice(index))
+	return NewKMedoids(X, c.Metric, dist)
 }
 
 type pair struct {
@@ -58,24 +76,25 @@ func (p pairs) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-// Initialize the medoids by choosing the most central k data points
+// Initialize the medoids by choosing the most central k data points.
 func (c *KMedoids) initialize() {
+	m := len(c.Dist)
 	// calculate normalized distances
-	normalized := make(Matrix, len(c.Dist))
+	normalized := make(Matrix, m)
 	for i, d := range c.Dist {
-		normalized[i] = make(Vector, len(d))
+		normalized[i] = make(Vector, m)
 		sum := 0.0
-		for j, x := range d {
-			normalized[i][j] = x
-			sum += x
+		for j := 0; j < m; j++ {
+			normalized[i][j] = d[j]
+			sum += d[j]
 		}
-		for j, _ := range d {
+		for j := 0; j < m; j++ {
 			normalized[i][j] /= sum
 		}
 	}
 
 	// sum the normalized distances across all rows
-	p := make(pairs, len(normalized[0]))
+	p := make(pairs, m)
 	for i, _ := range(normalized) {
 		p[i].value = i
 		for _, x := range normalized[i] {
@@ -88,7 +107,7 @@ func (c *KMedoids) initialize() {
 
 	// initialize centers
 	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)
-	c.Index = make([]int, len(c.X))
+	c.Clusters = make([]int, len(c.X))
 	for k, _ := range c.Centers {
 		// use the first k data points sorted by summed normalized distances
 		x := c.X[ p[k].value ]
@@ -106,12 +125,18 @@ func (c *KMedoids) maximization() {
 
 		// gather members
 		n := 0
-		memberIdx := make([]int, len(c.Index))
-		for i, class := range c.Index {
+		memberIdx := make([]int, len(c.Clusters))
+		for i, class := range c.Clusters {
 			if class == ii {
 				memberIdx[n] = i
 				n++
 			}
+		}
+
+		if n == 0 {
+			// medoid has no member: terminate with 0 cost
+			chCost <- 0
+			return
 		}
 		memberIdx = memberIdx[:n]
 

@@ -26,11 +26,16 @@ func (c *KMedians) Cluster(k int) (classes *Classes) {
 		c.maximization()
 		i++
 	}
+	if i == 0 {
+		// convergence is achieved right after initialization...
+		// run maximization at least once to calculate cost
+		c.maximization()
+	}
 
 	// copy classifcation information
 	classes = &Classes{
 		make([]int, len(c.X)), k, c.Cost}
-	copy(classes.Index, c.Index)
+	copy(classes.Index, c.Clusters)
 
 	return
 }
@@ -51,8 +56,8 @@ func (c *KMedians) maximization() {
 
 		// gather all member data points
 		n := 0
-		memberIdx := make([]int, len(c.Index))
-		for i, class := range c.Index {
+		memberIdx := make([]int, len(c.Clusters))
+		for i, class := range c.Clusters {
 			if class == ii {
 				for j, _ := range center {
 					members[j][n] = c.X[i][j]
@@ -63,7 +68,7 @@ func (c *KMedians) maximization() {
 		}
 		memberIdx = memberIdx[:n]
 
-		// compute center
+		// compute center as median of each data dimension
 		for j, _ := range center {
 			// find median
 			center[j] = median(members[j][:n])

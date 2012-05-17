@@ -15,6 +15,33 @@ const (
 	MaxValue = math.MaxFloat64
 )
 
+func NewVector(m int, v float64) (x Vector) {
+	x = make(Vector, m)
+	for i := 0; i < m; i++ {
+		x[i] = v;
+	}
+	return
+}
+
+func Range(start, end int) (x []int) {
+	size := end - start
+	x = make([]int, size)
+	v := start
+	for i := 0; i < size; i++ {
+		x[i] = v
+		v++
+	}
+	return
+}
+
+func (x Vector) Mean() (m float64) {
+	for i := 0; i < len(x); i++ {
+		m += x[i]
+	}
+	m /= float64(len(x))
+	return
+}
+
 func (x Vector) Summarize() (mean, variance float64) {
 	var stats Summary
 	for _, v := range x {

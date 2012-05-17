@@ -44,10 +44,14 @@ func (l *ActiveSet) Remove(i int) {
 	if i == l.first {
 		// re-assign first to the next node
 		l.first = l.values[i]
-	}
-	if i > 0 {
+	} else if i > 0 {
+		// find the previous element
+		prev := 0
+		for j := l.first; j < i; j = l.values[j] {
+			prev = j
+		}
 		// link the previous element to the next node
-		l.values[i-1] = l.values[i]
+		l.values[prev] = l.values[i]
 	}
 	// explicitly mark element as deleted
 	l.values[i] = -1

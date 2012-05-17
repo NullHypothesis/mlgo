@@ -23,13 +23,16 @@ type HClustersGeneric struct {
 	priority Heap
 }
 
-func NewHClustersGeneric(X Matrix, metric MetricOp, method int) *HClustersGeneric {
+func NewHClustersGeneric(X Matrix, metric MetricOp, method int, d *Distances) *HClustersGeneric {
+	if d == nil {
+		d = NewDistances(X, metric)
+	}
 	return &HClustersGeneric{
 		HClusters: HClusters{
 			X: X,
 			Metric: metric,
 			Method: method,
-			D: NewDistances(X, metric),
+			D: d,
 		},
 	}
 }
