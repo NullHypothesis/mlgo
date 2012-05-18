@@ -10,9 +10,9 @@ type Hopacher interface {
 }
 
 type Hopach struct {
-	Base Splitter
+	Base Hopacher
 
-	maxK, maxL int
+	maxLevel, maxK, maxL int
 	// implemented parameters
 	// clusters = best
 	// coll = seq
@@ -22,7 +22,17 @@ type Hopach struct {
 	// ord = neighbour
 }
 
-func NewHopach() {
+func NewHopach(base Hopacher) *Hopach {
+	return &Hopach{
+		Base: base,
+		maxLevel: 15,
+		maxK: 9,
+		maxL: 9,
+	}
+}
 
+func (h *Hopach) Hierarchize() Linkages {
+
+	return nil
 }
 

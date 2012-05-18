@@ -57,6 +57,11 @@ type Subclusterer interface {
 	Subcluster(k int, idx []int) *Classes
 }
 
+type Hierarchizer interface {
+	// Hierarchize organizes data clusters in a dendrogram
+	Hierarchize() Linkages
+}
+
 // FIXME There should be multiple instances of Clusterer
 // FindClusters runs the clustering algorithm for the specified number of repeats.
 func FindClusters(c Clusterer, k int, repeats int) (classes *Classes) {

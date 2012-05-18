@@ -100,7 +100,7 @@ func (c *KMeans) Subset(index []int) Splitter {
 	return d
 }
 
-// FIXME To deal with replicate data elements, ensure that the selected centers have distinct values
+// FIXME To deal with replicate data elements, ensure that the selected centers have distinct values (data permitting)
 // initialize the cluster centroids by randomly selecting data points
 func (c *KMeans) initialize() {
 	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)

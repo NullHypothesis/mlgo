@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"testing"
+	"math/rand"
 )
 
 var kmeansTests = []struct {
@@ -41,6 +42,19 @@ func TestKMeans(t *testing.T) {
 		}
 		if !CoordinatesSetEqual(c.Centers, test.centers) {
 			t.Errorf("#%d KMeans.Cluster(...) got %v, want %v", i, c.Centers, test.centers)
+		}
+
+		// test if same results are obtained after permutation
+
+		index := rand.Perm(c.Len())
+		d := c.Subset(index)
+		classes2 := d.Cluster(test.k)
+		// inverse the permutation
+		InvPerm(index)
+		// get the corrected index of the resulting classes
+		partitions := Partitions( Permute(classes2.Index, index) )
+		if !partitions.Equal(test.partitions) {
+			t.Errorf("#%d KMeans.Cluster(...) got %v after permutation, want %v", i, classes2.Index, test.partitions)
 		}
 	}
 }

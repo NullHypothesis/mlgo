@@ -15,14 +15,6 @@ const (
 	MaxValue = math.MaxFloat64
 )
 
-func NewVector(m int, v float64) (x Vector) {
-	x = make(Vector, m)
-	for i := 0; i < m; i++ {
-		x[i] = v;
-	}
-	return
-}
-
 func Range(start, end int) (x []int) {
 	size := end - start
 	x = make([]int, size)
@@ -30,6 +22,22 @@ func Range(start, end int) (x []int) {
 	for i := 0; i < size; i++ {
 		x[i] = v
 		v++
+	}
+	return
+}
+
+func NewVector(m int, v float64) (x Vector) {
+	x = make(Vector, m)
+	for i := 0; i < m; i++ {
+		x[i] = v
+	}
+	return
+}
+
+func (x Vector) Reordered(index []int) (y Vector) {
+	y = make(Vector, len(index))
+	for i, v := range index {
+		y[i] = x[v]
 	}
 	return
 }

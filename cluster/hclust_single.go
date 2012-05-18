@@ -28,11 +28,10 @@ func NewHClustersSingle(X Matrix, metric MetricOp, d *Distances) *HClustersSingl
 
 func (c *HClustersSingle) Cluster(k int) (classes *Classes) {
 	if c.D == nil { return }
+
+	c.Hierarchize()
+
 	c.K = k
-	c.initialize()
-
-	c.cluster()
-
 	c.CutTree(k)
 
 	// copy classification information
@@ -41,6 +40,13 @@ func (c *HClustersSingle) Cluster(k int) (classes *Classes) {
 	copy(classes.Index, c.Index)
 
 	return
+}
+
+func (c *HClustersSingle) Hierarchize() Linkages {
+	if c.D == nil { return nil }
+	c.initialize()
+	c.cluster()
+	return c.Dendrogram
 }
 
 func (c *HClustersSingle) initialize() {
