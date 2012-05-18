@@ -46,7 +46,7 @@ func NewKMeans(X Matrix, metric MetricOp) *KMeans {
 // Cluster runs the k-means algorithm once with random initialization
 // Returns the classification information
 func (c *KMeans) Cluster(k int) (classes *Classes) {
-	if c.X == nil || k >= len(c.X) {
+	if c.X == nil || k >= c.Len() {
 		return
 	}
 	c.K = k
@@ -100,6 +100,7 @@ func (c *KMeans) Subset(index []int) Splitter {
 	return d
 }
 
+// FIXME To deal with replicate data elements, ensure that the selected centers have distinct values
 // initialize the cluster centroids by randomly selecting data points
 func (c *KMeans) initialize() {
 	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)

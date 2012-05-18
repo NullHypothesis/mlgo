@@ -8,7 +8,7 @@ var kmeansTests = []struct {
 	x Matrix
 	metric MetricOp
 	k int
-	index Partitions
+	partitions Partitions
 	centers Matrix
 }{
 	{
@@ -36,8 +36,8 @@ func TestKMeans(t *testing.T) {
 	for i, test := range kmeansTests {
 		c := NewKMeans(test.x, test.metric)
 		classes := c.Cluster(test.k)
-		if !classes.Index.Equal(test.index) {
-			t.Errorf("#%d KMeans.Cluster(...) got %v, want %v", i, classes.Index, test.index)
+		if !classes.Index.Equal(test.partitions) {
+			t.Errorf("#%d KMeans.Cluster(...) got %v, want %v", i, classes.Index, test.partitions)
 		}
 		if !CoordinatesSetEqual(c.Centers, test.centers) {
 			t.Errorf("#%d KMeans.Cluster(...) got %v, want %v", i, c.Centers, test.centers)

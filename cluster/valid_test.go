@@ -3,7 +3,6 @@ package cluster
 import (
 	"mlgo/base"
 	"testing"
-	"fmt"
 )
 
 var silhouetteTests = []struct {
@@ -112,6 +111,7 @@ var splitTests = []struct {
 	x Matrix
 	metric MetricOp
 	k int
+	cost float64
 }{
 	/*
 	{
@@ -132,6 +132,7 @@ var splitTests = []struct {
 		},
 		Manhattan,
 		3,
+		0.21904761904761905,
 	},
 }
 
@@ -141,7 +142,6 @@ func TestSplit(t *testing.T) {
 		//c := NewKMeans(test.x, test.metric)
 		c := NewKMedoids(test.x, test.metric, nil)
 		split := SplitByMeanSplitSil(c, K, L)
-		fmt.Print(split)
 		if split.K != test.k {
 			t.Errorf("#%d SplitByMeanSplitSil(*KMeans, %d, %d) got %d, want %d", i, K, L, split.K, test.k)
 			t.Errorf("Output: %v", split)

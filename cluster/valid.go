@@ -3,7 +3,6 @@ package cluster
 import (
 	"mlgo/base"
 	"math"
-	"fmt"
 )
 
 // Validation measures
@@ -205,7 +204,6 @@ func SplitByMeanSplitSil(splitter Splitter, K, L int) (s Split) {
 		// remove empty elements at end to account for clusters that could be not split further
 		splitSil = splitSil[:n]
 		t := mlgo.Vector(splitSil).Mean()
-		fmt.Println(k, t, splitSil, classes)
 		if t < avgSplitSil {
 			avgSplitSil = t
 			optK = k

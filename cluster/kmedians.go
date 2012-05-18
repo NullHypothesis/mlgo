@@ -18,7 +18,7 @@ func NewKMedians(X Matrix, metric MetricOp) *KMedians {
 // instead of KMeans.maximization.
 func (c *KMedians) Cluster(k int) (classes *Classes) {
 
-	if c.X == nil || k >= len(c.X) {
+	if c.X == nil || k >= c.Len() {
 		return
 	}
 
