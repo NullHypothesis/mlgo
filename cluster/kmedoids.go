@@ -20,7 +20,7 @@ func NewKMedoids(X Matrix, metric MetricOp, dist Matrix) *KMedoids {
 		dist = NewDistances(X, metric).rep
 	}
 	return &KMedoids{
-		KMeans: KMeans{X:X, Metric:metric},
+		KMeans: *NewKMeans(X, metric),
 		Dist: dist,
 	}
 }
@@ -28,7 +28,9 @@ func NewKMedoids(X Matrix, metric MetricOp, dist Matrix) *KMedoids {
 // Cluster runs the k-medoids algorithm.
 // Returns the classification information.
 func (c *KMedoids) Cluster(k int) (classes *Classes) {
-	if c.X == nil { return }
+	if c.X == nil || k >= len(c.X) {
+		return
+	}
 	c.K = k
 	c.initialize()
 	i := 0
@@ -44,7 +46,7 @@ func (c *KMedoids) Cluster(k int) (classes *Classes) {
 
 	// copy classifcation information
 	classes = &Classes{
-		make([]int, len(c.X)), k, c.Cost }
+		make([]int, c.Len()), k, c.Cost }
 	copy(classes.Index, c.Clusters)
 
 	return
@@ -105,9 +107,10 @@ func (c *KMedoids) initialize() {
 	// sort the summed normalized distances
 	sort.Sort(p)
 
+	c.Clusters = make([]int, c.Len())
+
 	// initialize centers
 	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)
-	c.Clusters = make([]int, len(c.X))
 	for k, _ := range c.Centers {
 		// use the first k data points sorted by summed normalized distances
 		x := c.X[ p[k].value ]

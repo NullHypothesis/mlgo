@@ -9,7 +9,7 @@ type KMedians struct {
 }
 
 func NewKMedians(X Matrix, metric MetricOp) *KMedians {
-	return &KMedians{ KMeans: KMeans{X:X, Metric:metric} }
+	return &KMedians{ KMeans: *NewKMeans(X, metric) }
 }
 
 // Cluster runs the k-medians algorithm once with random initialization
@@ -18,7 +18,10 @@ func NewKMedians(X Matrix, metric MetricOp) *KMedians {
 // instead of KMeans.maximization.
 func (c *KMedians) Cluster(k int) (classes *Classes) {
 
-	if c.X == nil { return }
+	if c.X == nil || k >= len(c.X) {
+		return
+	}
+
 	c.K = k
 	c.initialize()
 	i := 0
@@ -34,7 +37,7 @@ func (c *KMedians) Cluster(k int) (classes *Classes) {
 
 	// copy classifcation information
 	classes = &Classes{
-		make([]int, len(c.X)), k, c.Cost}
+		make([]int, c.Len()), k, c.Cost}
 	copy(classes.Index, c.Clusters)
 
 	return
@@ -48,10 +51,11 @@ func (c *KMedians) maximization() {
 	move := func(ii int, chCost chan float64) {
 		center := c.Centers[ii]
 		// hold coordinate of each dimension for each member
+		// members is a dimension by member matrix
 		members := make(Matrix, len(center))
-		// initialize
+		// initialize to hold the maximum possible of elements
 		for j, _ := range center {
-			members[j] = make(Vector, len(c.X))
+			members[j] = make(Vector, len(c.Index))
 		}
 
 		// gather all member data points
@@ -60,9 +64,9 @@ func (c *KMedians) maximization() {
 		for i, class := range c.Clusters {
 			if class == ii {
 				for j, _ := range center {
-					members[j][n] = c.X[i][j]
+					members[j][n] = c.X[ c.Index[i] ][j]
 				}
-				memberIdx[n] = i
+				memberIdx[n] = c.Index[i]
 				n++
 			}
 		}
@@ -95,7 +99,7 @@ func (c *KMedians) maximization() {
 	for ii := 0; ii < len(c.Centers); ii++ {
 		J += <-ch;
 	}
-	c.Cost = J / float64( len(c.X) )
+	c.Cost = J / float64( c.Len() )
 }
 
 // find median

@@ -3,7 +3,7 @@ package cluster
 import (
 	"math/rand"
 	"mlgo/base"
-	"fmt"
+	//"fmt"
 )
 
 // TODO Make repeat runs internal to KMeans, KMedians, and KMedoids
@@ -31,20 +31,22 @@ type KMeans struct {
 	// Maximum number of iterations
 	MaxIter int
 	// ordered index of elements subset
-	index []int
+	Index []int
 }
 
 func NewKMeans(X Matrix, metric MetricOp) *KMeans {
+	// initialize index to complete index iterating over all elements of X, unless defined otherwise
 	return &KMeans{
 		X:      X,
 		Metric: metric,
+		Index: mlgo.Range(0, len(X)),
 	}
 }
 
 // Cluster runs the k-means algorithm once with random initialization
 // Returns the classification information
 func (c *KMeans) Cluster(k int) (classes *Classes) {
-	if c.X == nil {
+	if c.X == nil || k >= len(c.X) {
 		return
 	}
 	c.K = k
@@ -62,32 +64,39 @@ func (c *KMeans) Cluster(k int) (classes *Classes) {
 
 	// copy classifcation information
 	classes = &Classes{
-		make([]int, len(c.X)), k, c.Cost}
+		make([]int, c.Len()), k, c.Cost}
 	copy(classes.Index, c.Clusters)
 
 	return
 }
 
 func (c *KMeans) Len() int {
-	return len(c.index)
+	return len(c.Index)
 }
 
 func (c *KMeans) Segregations(classes *Classes) (S Matrix) {
 	if c.D == nil {
 		c.D = NewDistances(c.X, c.Metric)
+		c.D.index = c.Index
 	}
-	S = Segregations(c.D.rep, classes)
+	S = Segregations(c.D, classes)
 	return
 }
 
 func (c *KMeans) Subset(index []int) Splitter {
-	X := Matrix(mlgo.Matrix(c.X).Slice(index))
-	var D *Distances
-	if c.D != nil {
-		D = c.D.Subset(index)
+	// to avoid the subset instances having different instances of D, initialize D now
+	// (if D is initialized in the subset d and subsequently initialized in c, d.D and c.D will be different instances)
+	if c.D == nil {
+		c.D = NewDistances(c.X, c.Metric)
 	}
-	d := NewKMeans(X, c.Metric);
-	d.D = D
+	D := c.D.Subset(index)
+	// create shallow copy of original instance, with new index and D 
+	d := &KMeans{
+		X:      c.X,
+		Metric: c.Metric,
+		Index: index,
+		D: D,
+	}
 	return d
 }
 
@@ -95,18 +104,13 @@ func (c *KMeans) Subset(index []int) Splitter {
 func (c *KMeans) initialize() {
 	c.Centers, c.Errors = make(Matrix, c.K), make(Vector, c.K)
 
-	// initialize index to complete index iterating over all elements of X, unless defined otherwise
-	if c.index == nil {
-		c.index = mlgo.Range(0, len(c.X))
-	}
-	m := len(c.index)
-
+	m := c.Len()
 	c.Clusters = make([]int, m)
 
 	activeSet := NewActiveSet(m)
 	for k, _ := range c.Centers {
 		i := activeSet.Get( rand.Intn(activeSet.Len()) )
-		x := c.X[ c.index[i] ]
+		x := c.X[c.Index[i]]
 		activeSet.Remove(i)
 		// copy data vector
 		c.Centers[k] = make(Vector, len(x))
@@ -132,13 +136,13 @@ func (c *KMeans) expectation() (converged bool) {
 
 	// process examples concurrently
 	ch := make(chan int)
-	for i, _ := range c.X {
+	for _, i := range c.Index {
 		go assign(i, ch)
 	}
 
 	// collect results
 	converged = true
-	for i, _ := range c.X {
+	for i, _ := range c.Index {
 		if clusters := <-ch; c.Clusters[i] != clusters {
 			c.Clusters[i] = clusters
 			converged = false
@@ -165,7 +169,7 @@ func (c *KMeans) maximization() {
 		for i, class := range c.Clusters {
 			if class == ii {
 				for j, _ := range center {
-					x := c.X[i][j]
+					x := c.X[c.Index[i]][j]
 					center[j] += x
 				}
 				memberIdx[n] = i
@@ -182,7 +186,7 @@ func (c *KMeans) maximization() {
 		// compute cost
 		cost := 0.0
 		for _, i := range memberIdx {
-			cost += c.Metric(center, c.X[i])
+			cost += c.Metric(center, c.X[c.Index[i]])
 		}
 
 		c.Errors[ii] = cost
@@ -200,6 +204,6 @@ func (c *KMeans) maximization() {
 	for ii := 0; ii < len(c.Centers); ii++ {
 		J += <-ch
 	}
-	c.Cost = J / float64(len(c.X))
+	c.Cost = J / float64(c.Len())
 
 }

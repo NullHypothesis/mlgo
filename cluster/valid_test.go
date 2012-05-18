@@ -3,6 +3,7 @@ package cluster
 import (
 	"mlgo/base"
 	"testing"
+	"fmt"
 )
 
 var silhouetteTests = []struct {
@@ -31,7 +32,7 @@ var silhouetteTests = []struct {
 
 func TestSilhouettes(t *testing.T) {
 	for i, test := range silhouetteTests {
-		d := NewDistances(test.x, test.metric).rep
+		d := NewDistances(test.x, test.metric)
 		sil := Silhouettes( Segregations(d, test.classes), test.classes )
 		if !mlgo.Vector(test.silhouettes).Equal(mlgo.Vector(sil)) {
 			t.Errorf("#%d Silhouettes(Segregations(...), ...) got %v, want %v", i, sil, test.silhouettes)
@@ -126,7 +127,7 @@ var splitTests = []struct {
 	{
 		Matrix{
 			{1, 1}, {4, 4}, {5, 5}, {2, 2},
-			{51, 51}, {57, 57}, {52, 52}, {56, 56},
+			{53, 53}, {57, 57}, {54, 54}, {56, 56},
 			{91, 91}, {92, 92}, {94, 94}, {95, 95},
 		},
 		Manhattan,
@@ -140,6 +141,7 @@ func TestSplit(t *testing.T) {
 		//c := NewKMeans(test.x, test.metric)
 		c := NewKMedoids(test.x, test.metric, nil)
 		split := SplitByMeanSplitSil(c, K, L)
+		fmt.Print(split)
 		if split.K != test.k {
 			t.Errorf("#%d SplitByMeanSplitSil(*KMeans, %d, %d) got %d, want %d", i, K, L, split.K, test.k)
 			t.Errorf("Output: %v", split)

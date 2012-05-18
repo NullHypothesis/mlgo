@@ -3,6 +3,7 @@ package cluster
 import (
 	"mlgo/base"
 	"math"
+	"fmt"
 )
 
 // Validation measures
@@ -13,9 +14,9 @@ import (
 // use update formula?
 
 // Segregations return a matrix of distances between data points and clusters
-func Segregations(distances Matrix, classes *Classes) (S Matrix) {
+func Segregations(distances *Distances, classes *Classes) (S Matrix) {
 	// each row of x is considered one data point
-	m := len(distances)
+	m := distances.Len()
 
 	// allocate space
 	S = make(Matrix, m)
@@ -33,7 +34,7 @@ func Segregations(distances Matrix, classes *Classes) (S Matrix) {
 	for i := 0; i < m; i++ {
 		// accumulate sum
 		for j := 0; j < m; j++ {
-			S[i][ index[j] ] += distances[i][j]
+			S[i][ index[j] ] += distances.Get(i, j)
 		}
 		// derive mean via division by cluster sizes
 		for jj := 0; jj < classes.K; jj++ {
@@ -168,7 +169,6 @@ type Splitter interface {
 	Subset(index []int) Splitter
 }
 
-//TODO allow functions to take an index vector s.t. distances subset do not need to be copied?
 //TODO median split silhouette
 
 // K is the maximum number of clusters.
@@ -205,6 +205,7 @@ func SplitByMeanSplitSil(splitter Splitter, K, L int) (s Split) {
 		// remove empty elements at end to account for clusters that could be not split further
 		splitSil = splitSil[:n]
 		t := mlgo.Vector(splitSil).Mean()
+		fmt.Println(k, t, splitSil, classes)
 		if t < avgSplitSil {
 			avgSplitSil = t
 			optK = k
