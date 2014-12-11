@@ -1,9 +1,8 @@
 package cluster
 
 import (
-	"mlgo/base"
+	"code.google.com/p/mlgo"
 	"math"
-	//"fmt"
 )
 
 // Validation measures

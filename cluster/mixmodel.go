@@ -3,8 +3,7 @@ package cluster
 import (
 	"math"
 	"math/rand"
-	//"fmt"
-	"mlgo/base"
+	"code.google.com/p/mlgo"
 )
 
 type MixModel struct {

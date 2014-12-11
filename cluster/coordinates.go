@@ -1,8 +1,8 @@
 package cluster
 
 import (
+	"code.google.com/p/mlgo"
 	"sort"
-	"mlgo/base"
 )
 
 // CoordinatesSetEqual returns whether the a and b contain the same set of coordinates.
