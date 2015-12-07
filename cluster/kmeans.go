@@ -2,7 +2,7 @@ package cluster
 
 import (
 	"math/rand"
-	"code.google.com/p/mlgo"
+	"github.com/NullHypothesis/mlgo"
 )
 
 // TODO Make repeat runs internal to KMeans, KMedians, and KMedoids
