@@ -97,11 +97,17 @@ func (c *HClustersSingle) cluster() {
 		current = minIdx
 	}
 
-	// *Stably* sort the stepwise dendorgram, which is currently not in order
-	// Ties in distance will cause problems (e.g. merging a node to a new cluster
-	// which has yet been formed); therefore, a stable sorting algorithm is required
-	// TODO Replace standard library sort with a stable sort
-	sort.Sort(c.Dendrogram)
+	// Sort by indices, so that the most similar uptime columns are right next
+	// to each other.
+	for i := 0; i < len(c.Dendrogram)-2; i++ {
+		for j := i+2; j < len(c.Dendrogram); j++ {
+			if c.Dendrogram[i].Second == c.Dendrogram[j].First {
+				tmp := c.Dendrogram[i+1]
+				c.Dendrogram[i+1] = c.Dendrogram[j]
+				c.Dendrogram[j] = tmp
+			}
+		}
+	}
 }
 
 
