@@ -1,9 +1,5 @@
 package cluster
 
-import (
-	"sort"
-)
-
 // Single linkage hierarchical clustering using Minimum Spanning Tree (MST) algorithm
 type HClustersSingle struct {
 	HClusters
